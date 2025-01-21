@@ -10,12 +10,168 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Sample {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Role {
+  CASHIER
+  ADMIN
+}
 
-  @@map("samples") // if you want to use snake_case format
+model User {
+  id       Int    @id @default(autoincrement())
+  userName String @unique
+  email    String @unique
+  role     Role
+  password String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  // StockFlow StockFlow[]
+  StockHistory        StockHistory[]
+  Order               Order[]
+  CashRegisterHistory CashRegisterHistory[]
+}
+
+model Category {
+  id           Int    @id @default(autoincrement())
+  categoryName String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  Product Product[]
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  productName String  @unique
+  price       Float
+  imageUrls   String?
+  categoryId  Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  Category Category @relation(fields: [categoryId], references: [id])
+
+  OrderItem OrderItem[]
+  Stock     Stock[]
+}
+
+enum Flow {
+  IN
+  OUT
+}
+
+enum PayType {
+  CASH
+  DEBIT
+}
+
+model Stock {
+  id         Int @id @default(autoincrement())
+  productId  Int
+  totalStock Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  Product Product @relation(fields: [productId], references: [id])
+
+  StockHistory StockHistory[]
+  // StockFlow    StockFlow[]
+}
+
+model StockHistory {
+  id           Int  @id @default(autoincrement())
+  stockId      Int
+  adminId      Int
+  currentStock Int
+  flowType     Flow
+  itemAmount   Int
+  newStock     Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  User  User  @relation(fields: [adminId], references: [id])
+  Stock Stock @relation(fields: [stockId], references: [id])
+}
+
+// model StockFlow {
+//   id      Int @id @default(autoincrement())
+//   userId  Int
+//   stockId Int
+
+//   createdAt DateTime  @default(now())
+//   updatedAt DateTime  @default(now()) @updatedAt
+//   isDeleted Boolean   @default(false)
+//   deletedAt DateTime?
+
+//   User      User     @relation(fields: [userId], references: [id])
+//   Stock     Stock    @relation(fields: [stockId], references: [id])
+// }
+
+enum Status {
+  PENDING
+  PAID
+}
+
+model Order {
+  id         Int     @id @default(autoincrement())
+  userId     Int
+  totalItems Int
+  payType    PayType
+  debitCard  String?
+  totalPrice Float
+  status     Status @default(PENDING)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  User User @relation(fields: [userId], references: [id])
+
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id         Int   @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  price      Float
+  quantity   Int
+  totalPrice Float
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  Order   Order   @relation(fields: [orderId], references: [id])
+  Product Product @relation(fields: [productId], references: [id])
+}
+
+model CashRegisterHistory {
+  id               Int      @id @default(autoincrement())
+  cashierId        Int
+  CheckInTime      DateTime
+  currentCashTotal Float
+  CheckoutTime     DateTime
+  newCashTotal     Float
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  User User @relation(fields: [cashierId], references: [id])
 }

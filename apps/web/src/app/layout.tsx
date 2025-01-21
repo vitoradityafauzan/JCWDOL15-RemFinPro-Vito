@@ -3,6 +3,13 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { SideBar } from '@/SideBar';
+// import { usePathname } from 'next/navigation';
+// import { headers } from 'next/headers';
+// import { useRouter } from 'next/router';
+// import { Providers } from './provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,11 +23,33 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Sets Header to be hidden on certain page
+  // const router = useRouter();
+  // const showHeader = router.pathname !== '/login';
+
+  // const pathname = headers().get('x-nextjs-route') || '';
+  // const showHeader = pathname !== '/login';
+
+  // const pathname = usePathname();
+  // const showHeader = pathname !== '/login';
+
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className={inter.className}>
-        <Header />
-        {children}
+        <div className="flex min-h-screen border-2">
+          <SideBar />
+          <div className="flex flex-col">
+            <Header />
+            <main className="flex-grow">{children}</main>
+          </div>
+        </div>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          closeOnClick
+          draggable
+          hideProgressBar={true}
+        />
         <Footer />
       </body>
     </html>
