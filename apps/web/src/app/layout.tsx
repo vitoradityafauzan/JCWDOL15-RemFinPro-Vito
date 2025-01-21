@@ -5,7 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { SideBar } from '@/SideBar';
+import { SideBar } from '@/components/SideBar';
 // import { usePathname } from 'next/navigation';
 // import { headers } from 'next/headers';
 // import { useRouter } from 'next/router';
@@ -34,13 +34,13 @@ export default function RootLayout({
   // const showHeader = pathname !== '/login';
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="">
       <body className={inter.className}>
-        <div className="flex min-h-screen border-2">
+        <div className="flex min-h-screen border-0">
           <SideBar />
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-grow border-0">
             <Header />
-            <main className="flex-grow">{children}</main>
+            <main className="flex-grow border-0">{children}</main>
           </div>
         </div>
         <ToastContainer

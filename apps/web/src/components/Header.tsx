@@ -87,7 +87,7 @@ export const Header = () => {
         //     <a className="btn">Button</a>
         //   </div>
         // </div>
-        <div className="navbar bg-white border-l-2 border-zinc-100">
+        <div className="navbar bg-white border-0 ">
           {/* Left Side w dropdown button */}
           <div className="navbar-start">
             <div className="dropdown">
@@ -116,28 +116,19 @@ export const Header = () => {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
                 <li>
-                  <a>Open Transaction</a>
+                  <a>Clock In Shift</a>
                 </li>
                 <li>
-                  <a>Start Shift</a>
+                  <a>Clock Out Shift</a>
                 </li>
                 <li>
-                  <a>End Shift</a>
+                  <a>Transaction History</a>
                 </li>
                 <li>
-                  <a>History</a>
+                  <a>Open Transacion</a>
                 </li>
               </ul>
             </div>
-            {/* Searching */}
-            {/* <input
-              type="text"
-              placeholder="Type here"
-              className="input input-bordered input-sm lg:input-md w-full max-w-xs"
-            />
-            <button className="btn btn-sm bg-[#ddded8] text-slate-800 tracking-widest">
-              <IoSearchOutline />
-            </button> */}
             <h1 className="text-md lg:hidden font-bold text-[#72d9c8]">
               Cashewier
             </h1>
@@ -148,13 +139,7 @@ export const Header = () => {
             </h1>
           </div>
           <div className="navbar-end flex items-center gap-1 lg:gap-6">
-            {/* <div className="flex items-center gap-1 lg:gap-6"> */}
             {/* Search Modal */}
-            {/* <div className="form-control">
-                <button className="btn btn-sm btn-outline btn-accent tracking-widest">
-                  <IoSearchOutline className='text-black' />
-                </button>
-              </div> */}
             <HeaderModal />
             {/* Avatar */}
             <div className="dropdown dropdown-end">
@@ -179,15 +164,6 @@ export const Header = () => {
                 tabIndex={0}
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
-                {/* <li>
-                    <a className="justify-between">
-                      Profile
-                      <span className="badge">New</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a>Settings</a>
-                  </li> */}
                 <li>
                   <a className="text-red-500">Logout</a>
                 </li>
