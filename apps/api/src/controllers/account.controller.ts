@@ -63,16 +63,20 @@ export class AccountController {
   // Account Registration
   async createAccount(req: Request, res: Response) {
     try {
-      accCheck(req.body.email, req.body.password, req.body.role);
+      accCheck(req.body.username, req.body.password, req.body.role);
       // fetching user info
-      const { email, password, role } = req.body;
+      const { username, password, role } = req.body;
 
-      // Checking if email has been used
+      if (username == undefined || password == undefined || role == undefined) {
+        throw 'Please fill all fields!';
+      }
+
+      // Checking if username has been used
       const existingUser = await prisma.user.findFirst({
-        where: { email: email },
+        where: { username: username },
       });
 
-      if (existingUser) throw 'Email Has Been Used !';
+      if (existingUser) throw 'username Has Been Used !';
 
       // hashing password
       const salt = await genSalt(10);
@@ -81,15 +85,18 @@ export class AccountController {
       // Upload user registration to database
       const account = await prisma.user.create({
         data: {
-          email,
-          userName: email.replace(/@.*$/, ''),
+          username,
           password: hashPassword,
           role: role, // CASHIER || ADMIN
         },
       });
 
       // Setting login token
-      const payload = { id: account.id };
+      const payload = {
+        id: account.id,
+        username: account.username,
+        role: account.role,
+      };
       const token = sign(payload, process.env.SECRET_JWT!, {
         expiresIn: '1d',
       });
@@ -118,17 +125,21 @@ export class AccountController {
   // Reguler login process
   async loginAccount(req: Request, res: Response) {
     try {
-      accCheck(req.body.email, req.body.password);
+      accCheck(req.body.username, req.body.password);
 
       // fetching user info
-      const { email, password } = req.body;
+      const { username, password } = req.body;
 
-      // Checking if email has ever been registered p1
+      if (username == undefined || password == undefined) {
+        throw 'Please fill all fields!';
+      }
+
+      // Checking if username has ever been registered p1
       const existingUser = await prisma.user.findUnique({
-        where: { email: email },
+        where: { username: username },
       });
 
-      // Checking if email has ever been registered p2
+      // Checking if username has ever been registered p2
       if (!existingUser) {
         throw 'Account not found!';
       }
@@ -144,7 +155,7 @@ export class AccountController {
       // Creating token
       const payload = {
         id: existingUser.id,
-        email: existingUser.email,
+        username: existingUser.username,
         role: existingUser.role,
       };
       const token = sign(payload, process.env.SECRET_JWT!, { expiresIn: '1d' });

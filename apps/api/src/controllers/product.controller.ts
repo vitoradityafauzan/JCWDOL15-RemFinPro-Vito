@@ -1,44 +1,83 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
+import { Prisma } from '@prisma/client';
 
 export class ProductController {
+  // async getProducts(req: Request, res: Response) {
+  //   try {
+  //     const { name, categoryIds, page = 1, pageSize = 10 } = req.query;
+  //     const skip = (Number(page) - 1) * Number(pageSize);
+  //     const take = Number(pageSize);
+
+  //     const whereFilter = {
+  //       AND: [{ productName: { contains: name as string } }],
+  //     } as any;
+
+  //     const modifiedCategoryIds = Array.isArray(categoryIds)
+  //       ? categoryIds
+  //       : categoryIds
+  //         ? [categoryIds]
+  //         : [];
+
+  //     if (modifiedCategoryIds && modifiedCategoryIds.length > 0) {
+  //       whereFilter.AND.push({
+  //         categoryId: { in: modifiedCategoryIds.map((id) => Number(id)) },
+  //       });
+  //     }
+
+  //     const [products, total] = await prisma.$transaction([
+  //       prisma.product.findMany({
+  //         where: whereFilter,
+  //         include: {
+  //           Category: true,
+  //         },
+  //         skip,
+  //         take,
+  //       }),
+  //       prisma.product.count({
+  //         where: whereFilter,
+  //       }),
+  //     ]);
+
+  //     res.status(200).json({ products, total });
+  //   } catch (err) {
+  //     res.status(400).send({
+  //       status: 'error',
+  //       msg: err,
+  //     });
+  //   }
+  // }
+
   async getProducts(req: Request, res: Response) {
     try {
-      const { name, categoryIds, page = 1, pageSize = 10 } = req.query;
-      const skip = (Number(page) - 1) * Number(pageSize);
-      const take = Number(pageSize);
+      const { search } = req.query;
 
-      const whereFilter = {
-        AND: [{ productName: { contains: name as string } }],
-      } as any;
+      const filterCategory = req.query.category as string | undefined;
+      const category = filterCategory
+        ? parseInt(filterCategory, 10)
+        : undefined;
 
-      const modifiedCategoryIds = Array.isArray(categoryIds)
-        ? categoryIds
-        : categoryIds
-          ? [categoryIds]
-          : [];
+      let filter: Prisma.ProductWhereInput = {};
 
-      if (modifiedCategoryIds && modifiedCategoryIds.length > 0) {
-        whereFilter.AND.push({
-          categoryId: { in: modifiedCategoryIds.map((id) => Number(id)) },
-        });
+      if (search) {
+        filter.productName = { contains: search as string };
       }
 
-      const [products, total] = await prisma.$transaction([
-        prisma.product.findMany({
-          where: whereFilter,
-          include: {
-            Category: true,
-          },
-          skip,
-          take,
-        }),
-        prisma.product.count({
-          where: whereFilter,
-        }),
-      ]);
+      if (category || category != undefined) {
+        filter.categoryId = category;
+      }
 
-      res.status(200).json({ products, total });
+      const products = await prisma.product.findMany({
+        where: filter,
+        include: {
+          Category: true,
+        },
+      });
+
+      res.status(200).send({
+        status: 'ok',
+        products,
+      });
     } catch (err) {
       res.status(400).send({
         status: 'error',
@@ -62,6 +101,44 @@ export class ProductController {
       }
 
       res.status(200).json(product);
+    } catch (err) {
+      res.status(400).send({
+        status: 'error',
+        msg: err,
+      });
+    }
+  }
+
+  async getCategories(req: Request, res: Response) {
+    try {
+      const categories = await prisma.category.findMany();
+
+      res.status(200).send({
+        status: 'ok',
+        categories,
+      });
+    } catch (err) {
+      res.status(400).send({
+        status: 'error',
+        msg: err,
+      });
+    }
+  }
+
+  async getCategoryId(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const categories = await prisma.category.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
+
+      res.status(200).send({
+        status: 'ok',
+        categories,
+      });
     } catch (err) {
       res.status(400).send({
         status: 'error',

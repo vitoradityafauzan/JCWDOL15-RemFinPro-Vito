@@ -1,119 +1,187 @@
+'use client';
+
 import * as React from 'react';
 // import { Spinner } from '@nextui-org/react';
 import Image from 'next/image';
 import { ProductCard } from '@/components/Dashboard/ProductCard';
 import { CartItem } from '@/components/Dashboard/CartItem';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import { categoryList, productList } from '@/lib/product';
+import { toastFailed } from './utils/toastHelper';
+import { ICategories, IProductGet } from '@/types/productTypes';
+import { Cart } from '@/components/Dashboard/Cart';
 
 export default function Home() {
+  const router = useRouter();
+  const toastSeeFailed = (message: string) => toastFailed(message);
+
+  // Search state and query handling
+  const searchParams = useSearchParams();
+  const querySearch = searchParams.get('search');
+  const queryCategory = searchParams.get('category');
+
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const [data, setData] = useState<IProductGet[] | null>(null);
+  const [search, setSearch] = useState<string>(querySearch || '');
+  const [category, setCategory] = useState<string>(queryCategory || '');
+
+  // Set debounce value
+  const [debouncedSearch] = useDebounce(search, 1000);
+  const [debouncedCategory] = useDebounce(category, 1000);
+
+  // Track if user has interacted with the inputs
+  const [isSearchTouched, setIsSearchTouched] = useState(false);
+  const [isCategoryTouched, setIsCategoryTouched] = useState(false);
+
+  //  Handle Search Inputs activity
+  const handleSearchChange = () => {
+    if (searchRef.current) {
+      setSearch(searchRef.current.value);
+      setIsSearchTouched(true); // Mark search as touched
+    }
+  };
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategory(e.target.value);
+    setIsCategoryTouched(true); // Mark category as touched
+  };
+
+  // Handle description html string
+  function createMarkup(c: string) {
+    return { __html: c };
+  }
+
+  const getData = async () => {
+    try {
+      // Only push the query to the router if at least one input has been changed by the user
+      if (isSearchTouched || isCategoryTouched) {
+        const query = `?search=${debouncedSearch}&category=${debouncedCategory}
+`;
+        router.push(query);
+      }
+
+      // Fetch events based on the search parameters
+      const { products } = await productList(
+        debouncedSearch,
+        debouncedCategory,
+      );
+      setData(products || []);
+    } catch (err: any) {
+      toastSeeFailed(`${err}`);
+    }
+  };
+
+  // Trigger getData when debounced values change
+  useEffect(
+    () => {
+      getData();
+    },
+    /*[debouncedSearch]*/ [debouncedSearch, debouncedCategory],
+  );
+
+  const [categories, setCategories] = useState<ICategories[] | null>(null);
+
+  const getCategories = async () => {
+    try {
+      const { categories } = await categoryList();
+
+      setCategories(categories);
+    } catch (err: any) {
+      toastSeeFailed(`${err}`);
+    }
+  };
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
   return (
     // bg-[#b9e1da]
     <div className="grid grid-cols-3 h-full bg-zinc-100 border-0">
-      {/* Product List */}
-      <div className="col-span-2 h-full flex flex-row flex-wrap justify-center gap-5 p-5 ">
+      <div className="col-span-2 h-full flex flex-col gap-5">
+        {/* Filter */}
+        <div className="flex gap-5 p-5">
+          <div className="flex">
+            <label className="input input-bordered input-accent flex items-center gap-2">
+              <input
+                type="text"
+                className="grow"
+                placeholder="Search"
+                onChange={handleSearchChange}
+                ref={searchRef}
+                defaultValue={debouncedSearch}
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className="h-4 w-4 opacity-70"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </label>
+          </div>
+          <div className="flex">
+            <select
+              className="select select-accent w-full max-w-xs"
+              onChange={handleCategoryChange}
+              value={category}
+            >
+              <option value={''}>Category</option>
+              {categories &&
+                categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.categoryName}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+        {/* Product List */}
+        <div className="flex flex-row flex-wrap h-full justify-center gap-5 p-2 ">
+          {data &&
+            data.map((pro) => (
+              <ProductCard
+                key={pro.id}
+                name={pro.productName}
+                image={pro.imageUrls}
+                imgAlt={pro.productName}
+                price={pro.price}
+              />
+            ))}
+        </div>
+      </div>
+
+      {/* Cart */}
+      <Cart />
+    </div>
+  );
+}
+
+/*
+
+<div className="col-span-2 h-full flex flex-row flex-wrap justify-center gap-5 p-5 ">
         <ProductCard
           name="Coffee"
           image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
           imgAlt="coffee"
           price={10.99}
-        />
-        <ProductCard
-          name="Chitato Barbeque Anniversary Edition gggg gggg gggg"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="herbs coffee"
-          price={9800}
-        />
-        <ProductCard
-          name="White Coffee"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="white coffee"
-          price={13.99}
-        />
-        <ProductCard
-          name="White Coffee"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="white coffee"
-          price={13.99}
-        />
-        <ProductCard
-          name="White Coffee"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="white coffee"
-          price={13.99}
-        />
-        <ProductCard
-          name="White Coffee"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="white coffee"
-          price={13.99}
-        />
-        <ProductCard
-          name="White Coffee"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="white coffee"
-          price={13.99}
-        />
+        /> 
+        {data &&
+          data.map((product) => (
+            <ProductCard
+              key={product.id}
+              name={product.productName}
+              image={product.imageUrls}
+              imgAlt={product.productName}
+              price={product.price}
+            />
+          ))}
       </div>
 
-      {/* Cart */}
-      <div className="col-span-1 flex flex-col sticky top-4 h-[30rem] gap-7 p-4 justify-between bg-zinc-50 border-8 border-accent rounded-lg">
-        <div className="basis 5/6 flex flex-col flex-wrap gap-8">
-          <div className="h-fit">
-            <h1 className="text-xl text-center ">Current Cart</h1>
-          </div>
-          {/* Cart content */}
-          <div className="flex flex-col gap-5 overflow-y-auto h-56">
-            {/* <div className="flex justify-between items-center">
-              <div className="border-0 basis-4/6 flex flex-col gap-3">
-                <h1>Kapal Api Coffe Black</h1>
-                <h2 className="text-zinc-400">10.66</h2>
-              </div>
-              <div className="basis-2/6">
-                <input
-                  type="number"
-                  placeholder="amount"
-                  className="input input-bordered input-accent input-sm w-full max-w-xs text-sm"
-                />
-              </div>
-            </div> */}
-            <CartItem
-              name="Chitato Barbeque Anniversary Edition"
-              price={12000}
-              amount={1}
-            />
-            <CartItem
-              name="Chitato Barbeque Anniversary Edition"
-              price={12000}
-              amount={1}
-            />
-            <CartItem
-              name="Chitato Barbeque Anniversary Edition"
-              price={12000}
-              amount={1}
-            />
-            <CartItem
-              name="Chitato Barbeque Anniversary Edition"
-              price={12000}
-              amount={1}
-            />
-            <CartItem
-              name="Chitato Barbeque Anniversary Edition"
-              price={12000}
-              amount={1}
-            />
-          </div>
-        </div>
-
-        {/* Cart total priices */}
-        <div className="basis-1/6 flex flex-col gap-4 justify-between border-0">
-          <div className="flex justify-between">
-            <h1>Total</h1>
-            <h2>price here</h2>
-          </div>
-          <button className="btn btn-outline btn-success">
-            Proceed To Payment
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+*/

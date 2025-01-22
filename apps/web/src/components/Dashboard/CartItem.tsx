@@ -18,7 +18,7 @@ export const CartItem: React.FC<ICartItemProps> = ({ name, price, amount }) => {
           <input
             type="number"
             placeholder="amount"
-            value={amount}
+            defaultValue={1}
             className="input input-bordered input-accent input-sm w-full max-w-xs text-sm"
           />
         </div>

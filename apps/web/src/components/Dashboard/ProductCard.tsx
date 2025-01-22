@@ -1,16 +1,17 @@
+/* eslint-disable @next/next/no-img-element */
 
 import React from "react";
 
 interface IProductCardProps {
   name: string;
-  image: string;
+  image: string | undefined;
   imgAlt: string;
   price: number;
 }
 
 export const ProductCard: React.FC<IProductCardProps> = ({name, image, imgAlt, price}) => {
   return (
-    <div className="card card-compact bg-zinc-50 w-52 h-80 ">
+    <div className="card card-compact bg-zinc-50 w-60 h-80 ">
       <figure>
         <img
           src={image}
