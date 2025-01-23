@@ -1,13 +1,54 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { IoSearchOutline } from 'react-icons/io5';
 import { HeaderModal } from './HeaderModal';
 import { PiGearFineFill } from 'react-icons/pi';
+import { deleteToken } from '@/lib/account';
+import { deleteCookie, getCookie } from 'cookies-next';
+import Swal from 'sweetalert2';
+import { toastFailed } from '@/app/utils/toastHelper';
+import { useEffect } from 'react';
 
 export const Header = () => {
+  const router = useRouter();
+  const toastSeeFailed = (message: string) => toastFailed(message);
+
   const pathname = usePathname();
   const showHeader = pathname !== '/login';
+
+  const handleLogout = async () => {
+    await deleteCookie('cashewier-token');
+
+    Swal.fire({
+      titleText: `Successfully Logged Out`,
+      icon: 'success',
+      confirmButtonText: 'Ok',
+      timer: 4000,
+    });
+
+    router.push('/');
+  };
+
+  const checkSession = async () => {
+    try {
+      const token = await getCookie('cashewier-token');
+
+      if (!token) throw 'Please Login Before Accessing Profile!';
+    } catch (err: any) {
+      if (err === 'Please Login Before Accessing Profile!') {
+        toastSeeFailed(`${err}`);
+
+        router.push('/login');
+      } else {
+        toastSeeFailed(`${err}`);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (showHeader) checkSession();
+  }, []);
 
   return (
     <>
@@ -165,7 +206,9 @@ export const Header = () => {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
                 <li>
-                  <a className="text-red-500">Logout</a>
+                  <a className="text-red-500" onClick={handleLogout}>
+                    Logout
+                  </a>
                 </li>
               </ul>
             </div>

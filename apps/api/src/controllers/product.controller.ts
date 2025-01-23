@@ -78,11 +78,18 @@ export class ProductController {
         status: 'ok',
         products,
       });
-    } catch (err) {
-      res.status(400).send({
-        status: 'error',
-        msg: err,
-      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(401).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(401).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
     }
   }
 
@@ -101,11 +108,18 @@ export class ProductController {
       }
 
       res.status(200).json(product);
-    } catch (err) {
-      res.status(400).send({
-        status: 'error',
-        msg: err,
-      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(401).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(401).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
     }
   }
 
@@ -117,11 +131,18 @@ export class ProductController {
         status: 'ok',
         categories,
       });
-    } catch (err) {
-      res.status(400).send({
-        status: 'error',
-        msg: err,
-      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(401).send({
+          status: 'error categories',
+          msg: error.message,
+        });
+      } else {
+        res.status(401).send({
+          status: 'error categories',
+          msg: error,
+        });
+      }
     }
   }
 
@@ -139,11 +160,18 @@ export class ProductController {
         status: 'ok',
         categories,
       });
-    } catch (err) {
-      res.status(400).send({
-        status: 'error',
-        msg: err,
-      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(401).send({
+          status: 'error categories',
+          msg: error.message,
+        });
+      } else {
+        res.status(401).send({
+          status: 'error categories',
+          msg: error,
+        });
+      }
     }
   }
 }

@@ -19,12 +19,12 @@ export class AccountController {
     } catch (error: any) {
       if (error.message) {
         res.status(401).send({
-          status: 'error get users',
+          status: 'error accounts',
           msg: error.message,
         });
       } else {
         res.status(401).send({
-          status: 'error get users',
+          status: 'error accounts',
           msg: error,
         });
       }
@@ -48,12 +48,12 @@ export class AccountController {
     } catch (error: any) {
       if (error.message) {
         res.status(404).send({
-          status: 'Account Error',
+          status: 'error accounts',
           msg: error.message,
         });
       } else {
         res.status(404).send({
-          status: 'Account Error',
+          status: 'error accounts',
           msg: error,
         });
       }
@@ -68,7 +68,7 @@ export class AccountController {
       const { username, password, role } = req.body;
 
       if (username == undefined || password == undefined || role == undefined) {
-        throw 'Please fill all fields!';
+        throw 'Please Fill All Fields!';
       }
 
       // Checking if username has been used
@@ -76,7 +76,7 @@ export class AccountController {
         where: { username: username },
       });
 
-      if (existingUser) throw 'username Has Been Used !';
+      if (existingUser) throw 'Username Has Been Used !';
 
       // hashing password
       const salt = await genSalt(10);
@@ -110,12 +110,12 @@ export class AccountController {
     } catch (error: any) {
       if (error.message) {
         res.status(400).send({
-          status: 'error register',
+          status: 'error accounts',
           msg: error.message,
         });
       } else {
         res.status(400).send({
-          status: 'error register',
+          status: 'error accounts',
           msg: error,
         });
       }
@@ -131,7 +131,7 @@ export class AccountController {
       const { username, password } = req.body;
 
       if (username == undefined || password == undefined) {
-        throw 'Please fill all fields!';
+        throw 'Please Fill All Fields!';
       }
 
       // Checking if username has ever been registered p1
@@ -141,7 +141,7 @@ export class AccountController {
 
       // Checking if username has ever been registered p2
       if (!existingUser) {
-        throw 'Account not found!';
+        throw 'Account Not Found!';
       }
 
       // Checking password validity p1
@@ -149,7 +149,7 @@ export class AccountController {
 
       // Checking password validity p2
       if (!isPasswordValid) {
-        throw 'incorrect password!';
+        throw 'Incorrect Password!';
       }
 
       // Creating token
@@ -162,18 +162,18 @@ export class AccountController {
 
       res.status(200).send({
         status: 'ok',
-        msg: 'login success!',
+        msg: 'Login Successfull!',
         token,
       });
     } catch (error: any) {
       if (error.message) {
         res.status(401).send({
-          status: 'error login',
+          status: 'error accounts',
           msg: error.message,
         });
       } else {
         res.status(401).send({
-          status: 'error login',
+          status: 'error accounts',
           msg: error,
         });
       }

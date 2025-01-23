@@ -3,6 +3,7 @@
 import React from "react";
 
 interface IProductCardProps {
+  id: number;
   name: string;
   image: string | undefined;
   imgAlt: string;

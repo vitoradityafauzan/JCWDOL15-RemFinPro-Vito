@@ -12,6 +12,7 @@ import { categoryList, productList } from '@/lib/product';
 import { toastFailed } from './utils/toastHelper';
 import { ICategories, IProductGet } from '@/types/productTypes';
 import { Cart } from '@/components/Dashboard/Cart';
+import { getCookie } from 'cookies-next';
 
 export default function Home() {
   const router = useRouter();
@@ -52,12 +53,47 @@ export default function Home() {
     return { __html: c };
   }
 
+  // async function getToken() {
+  //   return getCookie('cashewier-token');
+  // }
+
+  //   const getData = async () => {
+  //     try {
+  //       const token = await getToken();
+
+  //       if (!token) throw 'Please Login Before Accessing Profile!';
+
+  //       // Only push the query to the router if at least one input has been changed by the user
+  //       if (isSearchTouched || isCategoryTouched) {
+  //         const query = `?search=${debouncedSearch}&category=${debouncedCategory}
+  // `;
+  //         router.push(query);
+  //       }
+
+  //       // Fetch events based on the search parameters
+  //       const { products } = await productList(
+  //         debouncedSearch,
+  //         debouncedCategory,
+  //       );
+  //       setData(products || []);
+  //     } catch (err: any) {
+  //       if (err === 'Please Login Before Accessing Profile!') {
+  //         toastSeeFailed(`${err}`);
+
+  //         router.push('/login');
+  //       } else {
+  //         toastSeeFailed(`${err}`);
+  //       }
+  //     }
+  //   };
+
+  // Trigger getData when debounced values change
+
   const getData = async () => {
     try {
       // Only push the query to the router if at least one input has been changed by the user
       if (isSearchTouched || isCategoryTouched) {
-        const query = `?search=${debouncedSearch}&category=${debouncedCategory}
-`;
+        const query = `?search=${debouncedSearch}&category=${debouncedCategory}`;
         router.push(query);
       }
 
@@ -72,7 +108,6 @@ export default function Home() {
     }
   };
 
-  // Trigger getData when debounced values change
   useEffect(
     () => {
       getData();
@@ -148,6 +183,7 @@ export default function Home() {
             data.map((pro) => (
               <ProductCard
                 key={pro.id}
+                id={pro.id}
                 name={pro.productName}
                 image={pro.imageUrls}
                 imgAlt={pro.productName}
