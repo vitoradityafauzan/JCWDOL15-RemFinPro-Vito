@@ -22,3 +22,18 @@ export interface ICategories {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ICartItems {
+  id: number;
+  name: string;
+  price: number;
+  amount: number;
+}
+
+export type ICart = ICartItems[];
+
+export interface ITransactionCreate {
+  cashierId: number;
+  cart: ICart[];
+  totalPrice: number;
+}

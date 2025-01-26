@@ -3,9 +3,8 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { SideBar } from '@/components/SideBar';
+import { ContextGlobalProvider } from '@/global-context/contextProvider';
 // import { usePathname } from 'next/navigation';
 // import { headers } from 'next/headers';
 // import { useRouter } from 'next/router';
@@ -36,21 +35,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="">
       <body className={inter.className}>
-        <div className="flex min-h-screen border-0">
-          <SideBar />
-          <div className="flex flex-col flex-grow border-0">
-            <Header />
-            <main className="flex-grow border-0">{children}</main>
+        <ContextGlobalProvider>
+          <div className="flex min-h-screen border-0">
+            <SideBar />
+            <div className="flex flex-col flex-grow border-0">
+              <Header />
+              <main className="flex-grow border-0">{children}</main>
+            </div>
           </div>
-        </div>
-        <ToastContainer
-          position="bottom-right"
-          autoClose={3000}
-          closeOnClick
-          draggable
-          hideProgressBar={true}
-        />
-        <Footer />
+          <Footer />
+        </ContextGlobalProvider>
       </body>
     </html>
   );

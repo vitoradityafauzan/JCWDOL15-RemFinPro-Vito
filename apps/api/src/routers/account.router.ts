@@ -17,8 +17,28 @@ export class AccountRouter {
     this.router.get('/', verifyToken, this.accountController.getAccountDetail);
     this.router.post('/create', this.accountController.createAccount);
     this.router.post('/login', this.accountController.loginAccount);
-    this.router.get('/fetch-all', verifyToken, adminVerification, this.accountController.getAccounts);
-    this.router.get('/fetch-detail', verifyToken, adminVerification, this.accountController.getAccountDetail);
+    this.router.get(
+      '/fetch-all',
+      verifyToken,
+      adminVerification,
+      this.accountController.getAccounts,
+    );
+    this.router.get(
+      '/fetch-detail',
+      verifyToken,
+      adminVerification,
+      this.accountController.getAccountDetail,
+    );
+    this.router.get(
+      '/check-token',
+      verifyToken,
+      this.accountController.checkTokenExpiration,
+    );
+    this.router.post(
+      '/submit-shift',
+      verifyToken,
+      this.accountController.createCashierShift,
+    );
   }
 
   getRouter(): Router {

@@ -20,3 +20,4 @@ export const accCheck = (
     throw 'Invalid role!';
   }
 };
+

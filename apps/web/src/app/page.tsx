@@ -1,22 +1,19 @@
 'use client';
 
-import * as React from 'react';
-// import { Spinner } from '@nextui-org/react';
-import Image from 'next/image';
-import { ProductCard } from '@/components/Dashboard/ProductCard';
-import { CartItem } from '@/components/Dashboard/CartItem';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { useDebounce } from 'use-debounce';
-import { categoryList, productList } from '@/lib/product';
-import { toastFailed } from './utils/toastHelper';
 import { ICategories, IProductGet } from '@/types/productTypes';
 import { Cart } from '@/components/Dashboard/Cart';
 import { getCookie } from 'cookies-next';
+import debounce from 'lodash.debounce';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { categoryList, productList } from '@/lib/product';
+import { toastSwal } from './utils/swalHelper';
+import { ProductCard } from '@/components/Dashboard/ProductCard';
 
 export default function Home() {
   const router = useRouter();
-  const toastSeeFailed = (message: string) => toastFailed(message);
+
+  //
 
   // Search state and query handling
   const searchParams = useSearchParams();
@@ -28,111 +25,90 @@ export default function Home() {
   const [search, setSearch] = useState<string>(querySearch || '');
   const [category, setCategory] = useState<string>(queryCategory || '');
 
-  // Set debounce value
-  const [debouncedSearch] = useDebounce(search, 1000);
-  const [debouncedCategory] = useDebounce(category, 1000);
-
   // Track if user has interacted with the inputs
   const [isSearchTouched, setIsSearchTouched] = useState(false);
   const [isCategoryTouched, setIsCategoryTouched] = useState(false);
 
-  //  Handle Search Inputs activity
-  const handleSearchChange = () => {
-    if (searchRef.current) {
-      setSearch(searchRef.current.value);
-      setIsSearchTouched(true); // Mark search as touched
-    }
-  };
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCategory(e.target.value);
-    setIsCategoryTouched(true); // Mark category as touched
-  };
-
-  // Handle description html string
-  function createMarkup(c: string) {
-    return { __html: c };
-  }
-
-  // async function getToken() {
-  //   return getCookie('cashewier-token');
-  // }
-
-  //   const getData = async () => {
-  //     try {
-  //       const token = await getToken();
-
-  //       if (!token) throw 'Please Login Before Accessing Profile!';
-
-  //       // Only push the query to the router if at least one input has been changed by the user
-  //       if (isSearchTouched || isCategoryTouched) {
-  //         const query = `?search=${debouncedSearch}&category=${debouncedCategory}
-  // `;
-  //         router.push(query);
-  //       }
-
-  //       // Fetch events based on the search parameters
-  //       const { products } = await productList(
-  //         debouncedSearch,
-  //         debouncedCategory,
-  //       );
-  //       setData(products || []);
-  //     } catch (err: any) {
-  //       if (err === 'Please Login Before Accessing Profile!') {
-  //         toastSeeFailed(`${err}`);
-
-  //         router.push('/login');
-  //       } else {
-  //         toastSeeFailed(`${err}`);
-  //       }
-  //     }
-  //   };
-
-  // Trigger getData when debounced values change
-
-  const getData = async () => {
-    try {
-      // Only push the query to the router if at least one input has been changed by the user
-      if (isSearchTouched || isCategoryTouched) {
-        const query = `?search=${debouncedSearch}&category=${debouncedCategory}`;
-        router.push(query);
-      }
-
-      // Fetch events based on the search parameters
-      const { products } = await productList(
-        debouncedSearch,
-        debouncedCategory,
-      );
-      setData(products || []);
-    } catch (err: any) {
-      toastSeeFailed(`${err}`);
-    }
-  };
-
-  useEffect(
-    () => {
-      getData();
-    },
-    /*[debouncedSearch]*/ [debouncedSearch, debouncedCategory],
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      setSearch(value);
+    }, 600),
+    [],
   );
 
-  const [categories, setCategories] = useState<ICategories[] | null>(null);
+  const debouncedCategory = useCallback(
+    debounce((value: string) => {
+      setCategory(value);
+    }, 600),
+    [],
+  );
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isSearchTouched) setIsSearchTouched(true);
+
+    debouncedSearch(e.target.value);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!isCategoryTouched) setIsCategoryTouched(true);
+
+    debouncedCategory(e.target.value);
+  };
+
+  //
+
+  const [categories, setCategories] = useState<ICategories[] | null>(null);
   const getCategories = async () => {
     try {
       const { categories } = await categoryList();
 
       setCategories(categories);
     } catch (err: any) {
-      toastSeeFailed(`${err}`);
+      toastSwal('error', `${err}`);
     }
   };
-
   useEffect(() => {
     getCategories();
   }, []);
 
+  //
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // const token = getCookie('cashewier-token');
+        // if (!token) throw 'Please Login Before Accessing Profile!';
+
+        let query = ``;
+
+        if (isSearchTouched) {
+          query += `?search=${search}`;
+        }
+
+        if (isCategoryTouched) {
+          query += `&category=${category}`;
+        }
+
+        router.push(query);
+
+        // Fetch events based on the search parameters
+        const { products } = await productList(search, category);
+        setData(products || []);
+      } catch (err: any) {
+        // if (err === 'Please Login Before Accessing Profile!') {
+        //   toastSeeFailed(`${err}`);
+        //   router.push('/login');
+        // } else {
+        //   toastSeeFailed(`${err}`);
+        // }
+        toastSwal('error', `${err}`);
+      }
+    };
+
+    fetchData();
+  }, [search, category, router]);
+
   return (
-    // bg-[#b9e1da]
     <div className="grid grid-cols-3 h-full bg-zinc-100 border-0">
       <div className="col-span-2 h-full flex flex-col gap-5">
         {/* Filter */}
@@ -143,9 +119,9 @@ export default function Home() {
                 type="text"
                 className="grow"
                 placeholder="Search"
-                onChange={handleSearchChange}
                 ref={searchRef}
-                defaultValue={debouncedSearch}
+                defaultValue={search}
+                onChange={handleSearchChange}
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -165,7 +141,7 @@ export default function Home() {
             <select
               className="select select-accent w-full max-w-xs"
               onChange={handleCategoryChange}
-              value={category}
+              defaultValue={category}
             >
               <option value={''}>Category</option>
               {categories &&
@@ -198,26 +174,3 @@ export default function Home() {
     </div>
   );
 }
-
-/*
-
-<div className="col-span-2 h-full flex flex-row flex-wrap justify-center gap-5 p-5 ">
-        <ProductCard
-          name="Coffee"
-          image="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-          imgAlt="coffee"
-          price={10.99}
-        /> 
-        {data &&
-          data.map((product) => (
-            <ProductCard
-              key={product.id}
-              name={product.productName}
-              image={product.imageUrls}
-              imgAlt={product.productName}
-              price={product.price}
-            />
-          ))}
-      </div>
-
-*/

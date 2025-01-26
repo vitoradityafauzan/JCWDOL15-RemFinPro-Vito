@@ -4,44 +4,57 @@ import { usePathname, useRouter } from 'next/navigation';
 import { IoSearchOutline } from 'react-icons/io5';
 import { HeaderModal } from './HeaderModal';
 import { PiGearFineFill } from 'react-icons/pi';
-import { deleteToken } from '@/lib/account';
+import { checkTokenExpiration } from '@/lib/account';
 import { deleteCookie, getCookie } from 'cookies-next';
-import Swal from 'sweetalert2';
-import { toastFailed } from '@/app/utils/toastHelper';
+import { simpleSwal,  toastSwal } from '@/app/utils/swalHelper';
 import { useEffect } from 'react';
 
 export const Header = () => {
   const router = useRouter();
-  const toastSeeFailed = (message: string) => toastFailed(message);
 
   const pathname = usePathname();
   const showHeader = pathname !== '/login';
 
   const handleLogout = async () => {
+    // Delete token from cookie
     await deleteCookie('cashewier-token');
 
-    Swal.fire({
-      titleText: `Successfully Logged Out`,
-      icon: 'success',
-      confirmButtonText: 'Ok',
-      timer: 4000,
-    });
+    // Immediately push to the main page
+    router.push('/login');
 
-    router.push('/');
+    // Show the Swal notification
+    simpleSwal('success', `Successfully Logged Out`);
   };
 
   const checkSession = async () => {
     try {
-      const token = await getCookie('cashewier-token');
+      // const token = await getCookie('cashewier-token');
+      // if (!token) throw 'Please Login Before Accessing Profile!';
 
-      if (!token) throw 'Please Login Before Accessing Profile!';
+      const { result } = await checkTokenExpiration();
+
+      if (result.status !== 'ok') throw result.msg;
     } catch (err: any) {
-      if (err === 'Please Login Before Accessing Profile!') {
-        toastSeeFailed(`${err}`);
+      if (err === `no token`) {
+        router.push('/login');
+
+        // Show the Swal notification
+        toastSwal('error', `Please Login Before Accessing Further!`);
+        // simpleSwal('error', `Please Login Before Accessing Further!`);
+      } else if (err === `jwt expired`) {
+        deleteCookie('cashewier-token');
 
         router.push('/login');
+
+        toastSwal('error', `Session Expired, Please Login Before Accessing Further!`);
+
+        // Show the Swal notification
+        // simpleSwal(
+        //   'error',
+        //   `Session Expired, Please Login Before Accessing Further!`,
+        // );
       } else {
-        toastSeeFailed(`${err}`);
+        toastSwal('error', `${err}`);
       }
     }
   };

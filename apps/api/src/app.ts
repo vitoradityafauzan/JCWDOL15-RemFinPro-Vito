@@ -11,6 +11,7 @@ import cors from 'cors';
 import { PORT } from './config';
 import { AccountRouter } from './routers/account.router';
 import { ProductRouter } from './routers/product.router';
+import { TransactionRouter } from './routers/transaction.router';
 
 export default class App {
   private app: Express;
@@ -54,6 +55,7 @@ export default class App {
   private routes(): void {
     const accountRouter = new AccountRouter();
     const productRouter = new ProductRouter();
+    const transactionRouter = new TransactionRouter();
 
     this.app.get('/api', (req: Request, res: Response) => {
       res.send(`Hello to Cashewier API!`);
@@ -61,6 +63,7 @@ export default class App {
 
     this.app.use('/api/account', accountRouter.getRouter());
     this.app.use('/api/product', productRouter.getRouter());
+    this.app.use('/api/transaction', transactionRouter.getRouter());
   }
 
   public start(): void {

@@ -179,4 +179,51 @@ export class AccountController {
       }
     }
   }
+
+  async checkTokenExpiration(req: Request, res: Response) {
+    res.status(200).send({
+      status: 'ok',
+      msg: 'token ok',
+    });
+  }
+
+  async createCashierShift(req: Request, res: Response) {
+    try {
+      const {
+        cashierId,
+        CheckInTime,
+        currentCashTotal,
+        CheckoutTime,
+        newCashTotal,
+      } = req.body;
+
+      const createShift = await prisma.cashRegisterHistory.create({
+        data: {
+          cashierId,
+          CheckInTime,
+          currentCashTotal: Number(currentCashTotal),
+          CheckoutTime,
+          newCashTotal: Number(newCashTotal),
+        },
+      });
+
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Shift submitted successfully',
+        createShift
+      })
+    } catch (error: any) {
+      if (error.message) {
+        res.status(401).send({
+          status: 'error accounts',
+          msg: error.message,
+        });
+      } else {
+        res.status(401).send({
+          status: 'error accounts',
+          msg: error,
+        });
+      }
+    }
+  }
 }

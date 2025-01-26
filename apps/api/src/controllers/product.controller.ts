@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
 
+
+
 export class ProductController {
   // async getProducts(req: Request, res: Response) {
   //   try {
@@ -80,12 +82,12 @@ export class ProductController {
       });
     } catch (error: any) {
       if (error.message) {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error products',
           msg: error.message,
         });
       } else {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error products',
           msg: error,
         });
@@ -104,18 +106,18 @@ export class ProductController {
       });
 
       if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
+        throw 'Product not found';
       }
 
       res.status(200).json(product);
     } catch (error: any) {
       if (error.message) {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error products',
           msg: error.message,
         });
       } else {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error products',
           msg: error,
         });
@@ -133,12 +135,12 @@ export class ProductController {
       });
     } catch (error: any) {
       if (error.message) {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error categories',
           msg: error.message,
         });
       } else {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error categories',
           msg: error,
         });
@@ -162,16 +164,26 @@ export class ProductController {
       });
     } catch (error: any) {
       if (error.message) {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error categories',
           msg: error.message,
         });
       } else {
-        res.status(401).send({
+        res.status(400).send({
           status: 'error categories',
           msg: error,
         });
       }
     }
   }
+
+  /*
+  id: number,
+    name: string,
+    price: number,
+    amount: number,
+  
+  */
+
+  
 }

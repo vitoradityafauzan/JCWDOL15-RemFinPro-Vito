@@ -18,14 +18,6 @@ export class ProductRouter {
     this.router.get('/categories', this.productController.getCategories);
     this.router.get('/category/:id', this.productController.getCategoryId);
     // this.router.post(
-    //   '/specials/v2',
-    //   // verifyToken,
-    //   this.productController.getProductsWithStoreAddressV22,
-    // );
-    // this.router.post('/', this.productController.createProduct);
-    // this.router.put('/:id', this.productController.updateProduct);
-    // this.router.delete('/:id', this.productController.deleteProduct);
-    // this.router.post(
     //   '/upload-images',
     //   upload.array('images', 5),
     //   this.productController.uploadImage,

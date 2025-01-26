@@ -5,23 +5,13 @@ import { useRef } from 'react';
 import { ErrorMessage, Field, Form, Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
-import { toastFailed } from '../utils/toastHelper';
+import { simpleSwal, toastSwal } from '../utils/swalHelper';
 import { ILogin } from '@/types/accountTypes';
 import { loginSchema } from '../utils/formSchema';
 import { login } from '@/lib/account';
 
 export default function Login() {
   const router = useRouter();
-  //IDecodedToken
-  // Setting popup message
-  const swalSuccess = (message: string) =>
-    Swal.fire({
-      titleText: message,
-      icon: 'success',
-      confirmButtonText: 'Cool',
-      timer: 5000,
-    });
-  const toastLoginFailed = (message: string) => toastFailed(message);
 
   // const usernameRef = useRef<HTMLInputElement>(null);
   // const passwordRef = useRef<HTMLInputElement>(null);
@@ -39,16 +29,16 @@ export default function Login() {
       const { result } = await login(data);
 
       if (result.status === 'ok') {
-        swalSuccess('Login Successfull');
-
         action.resetForm();
 
         router.push(result.user.role === 'CASHIER' ? '/' : '/admin');
+
+        simpleSwal('success', 'Login Successfull');
       } else {
         throw result.msg;
       }
     } catch (error: any | string) {
-      toastLoginFailed(error);
+      toastSwal('error', error);
     }
   };
 
