@@ -8,3 +8,14 @@ export interface IDecodedToken {
   username: string;
   role: string;
 }
+
+export interface IAccount {
+  id: number;
+  username: string;
+  role: string;
+  password: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  deletedAt?: string;
+}

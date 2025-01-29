@@ -1,0 +1,430 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+  fetchCashiers,
+  addCashier,
+  updateCashier,
+  deleteCashier,
+} from '@/lib/account';
+import Modal from '@/components/Admins/CashierManagement/Modal';
+import { ErrorMessage, Field, Form, Formik, FormikHelpers } from 'formik';
+import { simpleSwal, toastSwal } from '@/app/utils/swalHelper';
+import { IAccount, ILogin } from '@/types/accountTypes';
+import { loginSchema } from '@/app/utils/formSchema';
+
+const CashierManagement = () => {
+  const [cashiers, setCashiers] = useState<IAccount[]>([]);
+  const [selectedCashier, setSelectedCashier] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('add'); // 'add' or 'update'
+
+  const fetchData = async () => {
+    try {
+      const { result } = await fetchCashiers();
+      if (result.status !== 'ok') {
+        throw result.msg;
+      }
+      setCashiers(result.accounts);
+    } catch (error: any) {
+      toastSwal('error', `${error}`);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAddSubmit = async (
+    data: ILogin,
+    action: FormikHelpers<ILogin>,
+  ) => {
+    try {
+      console.log('Log Comp, data form, \n');
+      console.log(data);
+      console.log('\n');
+
+      // Sending Form Data To Action
+      const { result } = await addCashier(data);
+
+      if (result.status !== 'ok') {
+        throw result.msg;
+      }
+      action.resetForm();
+
+      setCashiers([...cashiers, result.account]);
+
+      toastSwal('success', 'Cashier Added Successfully');
+    } catch (error: any | string) {
+      toastSwal('error', error);
+    }
+  };
+
+  const handleEditSubmit = async (
+    data: ILogin,
+    action: FormikHelpers<ILogin>,
+  ) => {
+    try {
+      console.log('Log Comp, data form, \n');
+      console.log(data);
+      console.log('\n');
+
+      // Sending Form Data To Action
+      const { result } = await addCashier(data);
+
+      if (result.status !== 'ok') {
+        throw result.msg;
+      }
+      action.resetForm();
+
+      setCashiers([...cashiers, result.account]);
+
+      toastSwal('success', 'Cashier Added Successfully');
+    } catch (error: any | string) {
+      toastSwal('error', error);
+    }
+  };
+
+  const handleDelete = async (cashierId: number) => {
+    await deleteCashier(cashierId);
+    setCashiers(cashiers.filter((cashier) => cashier.id !== cashierId));
+  };
+
+  //   const handleAdd = () => {
+  //     setSelectedCashier(null);
+  //     setModalType('add');
+  //     setIsModalOpen(true);
+  //   };
+
+  //   const handleEdit = (cashier) => {
+  //     setSelectedCashier(cashier);
+  //     setModalType('update');
+  //     setIsModalOpen(true);
+  //   };
+
+  //   const handleModalSubmit = async (data) => {
+  //     if (modalType === 'add') {
+  //       const newCashier = await addCashier(data);
+  //       setCashiers([...cashiers, newCashier]);
+  //     } else if (modalType === 'update') {
+  //       const updatedCashier = await updateCashier(selectedCashier.id, data);
+  //       setCashiers(
+  //         cashiers.map((cashier) =>
+  //           cashier.id === selectedCashier.id ? updatedCashier : cashier,
+  //         ),
+  //       );
+  //     }
+  //     setIsModalOpen(false);
+  //   };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Cashier Management</h1>
+      {/* <button className="btn btn-primary mb-4" onClick={handleAdd}>
+        Add Cashier
+      </button> */}
+      <button
+        className="btn btn-primary mb-4"
+        onClick={() =>
+          (
+            document.getElementById('add-cashier') as HTMLDialogElement
+          )?.showModal()
+        }
+      >
+        Add Cashier
+      </button>
+      <table className="table-auto w-full">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cashiers.map((cashier) => (
+            <tr key={cashier.id}>
+              <td>{cashier.id}</td>
+              <td>{cashier.username}</td>
+              <td>{cashier.role}</td>
+              <td>
+                <button
+                  className="btn btn-accent basis-3/6"
+                  onClick={() => {
+                    (
+                      document.getElementById(
+                        'edit-cashier',
+                      ) as HTMLDialogElement
+                    )?.showModal();
+                  }}
+                >
+                  Edit
+                </button>
+
+                {/*  */}
+
+                <dialog id="edit-cashier" className="modal">
+                  <div className="modal-box">
+                    <form method="dialog">
+                      {/* if there is a button in form, it will close the modal */}
+                      <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                        ✕
+                      </button>
+                    </form>
+                    <div className="flex flex-col gap-5 items-center">
+                      <h3 className="font-bold text-lg">Pay By Debit</h3>
+                      <div>
+                        <p className="py-4">Edit Cashier credential</p>
+                        <Formik
+                          initialValues={{
+                            username: cashier.username,
+                            password: '',
+                          }}
+                          validationSchema={loginSchema}
+                          onSubmit={handleEditSubmit}
+                        >
+                          {() => {
+                            return (
+                              <Form className="flex flex-col gap-5 p-5  border-0">
+                                {/* Input Username */}
+                                <label className="form-control w-full max-w-lg">
+                                  <div className="label">
+                                    <span className="label-text text-lg">
+                                      Username {cashier.username}
+                                    </span>
+                                  </div>
+                                  <Field
+                                    type="text"
+                                    name="username"
+                                    placeholder="Type username"
+                                    className="input input-bordered input-accent w-full max-w-md p-3 rounded-lg"
+                                  />
+                                  <ErrorMessage
+                                    name="username"
+                                    component="div"
+                                    className="text-red-500"
+                                  />
+                                </label>
+                                {/* Input Password */}
+                                <label className="form-control w-full max-w-md">
+                                  <div className="label">
+                                    <span className="label-text text-lg">
+                                      Password
+                                    </span>
+                                  </div>
+                                  <Field
+                                    type="password"
+                                    name="password"
+                                    placeholder="Type password here"
+                                    className="input input-bordered input-accent w-full max-w-md p-3 rounded-lg"
+                                  />
+                                  <ErrorMessage
+                                    name="password"
+                                    component="div"
+                                    className="text-red-500"
+                                  />
+                                </label>
+                                <button
+                                  className="btn btn-outline btn-accent"
+                                  type="submit"
+                                >
+                                  Submit
+                                </button>
+                              </Form>
+                            );
+                          }}
+                        </Formik>
+                      </div>
+                      {/* <form method="dialog">
+                        <button
+                          className="btn btn-outline btn-accent"
+                          onClick={handleTransactionFinalizeDebit}
+                        >
+                          checking
+                        </button>
+                      </form> */}
+                    </div>
+                  </div>
+                </dialog>
+
+                {/*  */}
+
+                {/* <button
+                  className="btn btn-secondary mr-2"
+                  onClick={() => handleEdit(cashier)}
+                >
+                  Edit
+                </button> */}
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleDelete(cashier.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/*  */}
+      {/*  */}
+
+      <dialog id="add-cashier" className="modal">
+        <div className="modal-box">
+          <form method="dialog">
+            {/* if there is a button in form, it will close the modal */}
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <div className="flex flex-col gap-5 items-center">
+            <h3 className="font-bold text-lg">Pay By Debit</h3>
+            <div>
+              <p className="py-4">Enter New Cashier credential</p>
+              <Formik
+                initialValues={{ username: '', password: '' }}
+                validationSchema={loginSchema}
+                onSubmit={handleAddSubmit}
+              >
+                {() => {
+                  return (
+                    <Form className="flex flex-col gap-5 p-5  border-0">
+                      {/* Input Username */}
+                      <label className="form-control w-full max-w-lg">
+                        <div className="label">
+                          <span className="label-text text-lg">Username</span>
+                        </div>
+                        <Field
+                          type="text"
+                          name="username"
+                          placeholder="Type username"
+                          className="input input-bordered input-accent w-full max-w-md p-3 rounded-lg"
+                        />
+                        <ErrorMessage
+                          name="username"
+                          component="div"
+                          className="text-red-500"
+                        />
+                      </label>
+                      {/* Input Password */}
+                      <label className="form-control w-full max-w-md">
+                        <div className="label">
+                          <span className="label-text text-lg">Password</span>
+                        </div>
+                        <Field
+                          type="password"
+                          name="password"
+                          placeholder="Type password here"
+                          className="input input-bordered input-accent w-full max-w-md p-3 rounded-lg"
+                        />
+                        <ErrorMessage
+                          name="password"
+                          component="div"
+                          className="text-red-500"
+                        />
+                      </label>
+
+                      <div className="modal-action">
+                        <label htmlFor="my_modal_6" className="w-fit h-fit">
+                          <button
+                            className="btn btn-outline btn-accent"
+                            type="submit"
+                          >
+                            Submit
+                          </button>
+                        </label>
+                      </div>
+                    </Form>
+                  );
+                }}
+              </Formik>
+            </div>
+            {/* <form method="dialog">
+              <button
+                className="btn btn-outline btn-accent"
+                onClick={handleTransactionFinalizeDebit}
+              >
+                checking
+              </button>
+            </form> */}
+          </div>
+        </div>
+      </dialog>
+
+      {/*  */}
+
+      {/* {isModalOpen && (
+        <Modal
+          type={modalType}
+          cashier={selectedCashier}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleModalSubmit}
+        />
+      )} */}
+    </div>
+  );
+};
+
+export default CashierManagement;
+
+/*
+return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Cashier Management</h1>
+      <button
+        className="btn btn-primary mb-4"
+        onClick={handleAdd}
+      >
+        Add Cashier
+      </button>
+      <table className="table-auto w-full">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cashiers.map((cashier) => (
+            <tr key={cashier.id}>
+              <td>{cashier.id}</td>
+              <td>{cashier.username}</td>
+              <td>{cashier.role}</td>
+              <td>
+                <button
+                  className="btn btn-secondary mr-2"
+                  onClick={() => handleEdit(cashier)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleDelete(cashier.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {isModalOpen && (
+        <Modal
+          type={modalType}
+          cashier={selectedCashier}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleModalSubmit}
+        />
+      )}
+    </div>
+  );
+*/
+
+/*
+
+
+*/

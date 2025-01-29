@@ -59,12 +59,24 @@ export default function Home() {
 
   const [categories, setCategories] = useState<ICategories[] | null>(null);
   const getCategories = async () => {
-    try {
-      const { categories } = await categoryList();
+    // try {
+    //   const { categories } = await categoryList();
 
-      setCategories(categories);
-    } catch (err: any) {
-      toastSwal('error', `${err}`);
+    //   setCategories(categories);
+    // } catch (err: any) {
+    //   toastSwal('error', `${err}`);
+    // }
+
+    try {
+      const { result } = await categoryList();
+
+      if (result.status !== 'ok') {
+        throw `${result.msg}`;
+      }
+
+      setCategories(result.categories);
+    } catch (error: any) {
+      toastSwal('error', `${error}`);
     }
   };
   useEffect(() => {
@@ -81,12 +93,16 @@ export default function Home() {
 
         let query = ``;
 
-        if (isSearchTouched) {
-          query += `?search=${search}`;
-        }
+        // if (isSearchTouched) {
+        //   query += `?search=${search}`;
+        // }
 
-        if (isCategoryTouched) {
-          query += `&category=${category}`;
+        // if (isCategoryTouched) {
+        //   query += `&category=${category}`;
+        // }
+
+        if (isSearchTouched || isCategoryTouched) {
+          query += `?search=${search}&category=${category}`;
         }
 
         router.push(query);
@@ -143,7 +159,7 @@ export default function Home() {
               onChange={handleCategoryChange}
               defaultValue={category}
             >
-              <option value={''}>Category</option>
+              <option value={''}>Select Category</option>
               {categories &&
                 categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -164,6 +180,7 @@ export default function Home() {
                 image={pro.imageUrls}
                 imgAlt={pro.productName}
                 price={pro.price}
+                stock={pro.Stock ? pro.Stock[0].totalStock : 0}
               />
             ))}
         </div>

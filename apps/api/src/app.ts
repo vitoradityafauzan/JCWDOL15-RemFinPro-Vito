@@ -27,6 +27,8 @@ export default class App {
     this.app.use(cors());
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
+
+    this.app.use('/api/public', express.static('public'));
   }
 
   private handleError(): void {

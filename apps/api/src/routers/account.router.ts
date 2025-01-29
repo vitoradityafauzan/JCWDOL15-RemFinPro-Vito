@@ -34,10 +34,28 @@ export class AccountRouter {
       verifyToken,
       this.accountController.checkTokenExpiration,
     );
+    this.router.get(
+      '/check-token-admin',
+      verifyToken,
+      adminVerification,
+      this.accountController.checkTokenExpiration,
+    );
     this.router.post(
       '/submit-shift',
       verifyToken,
       this.accountController.createCashierShift,
+    );
+    this.router.put(
+      '/update',
+      verifyToken,
+      adminVerification,
+      this.accountController.updateAccount,
+    );
+    this.router.put(
+      '/delete',
+      verifyToken,
+      adminVerification,
+      this.accountController.deleteAccount,
     );
   }
 

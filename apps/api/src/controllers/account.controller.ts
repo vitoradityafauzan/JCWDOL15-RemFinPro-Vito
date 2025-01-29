@@ -10,7 +10,11 @@ export class AccountController {
   // fetching user's data
   async getAccounts(req: Request, res: Response) {
     try {
-      const accounts = await prisma.user.findMany();
+      const accounts = await prisma.user.findMany({
+        where: {
+          isDeleted: false,
+        },
+      });
 
       res.status(200).send({
         status: 'ok',
@@ -180,10 +184,122 @@ export class AccountController {
     }
   }
 
+  // Account Registration
+  async updateAccount(req: Request, res: Response) {
+    try {
+      accCheck(req.body.username, req.body.password, req.body.role);
+      // fetching user info
+      const { cashierId, username, password, role } = req.body;
+
+      if (username == undefined || password == undefined || role == undefined) {
+        throw 'Please Fill All Fields!';
+      }
+
+      // Checking if cashier actually exist
+      const existingUser = await prisma.user.findFirst({
+        where: { id: cashierId },
+      });
+
+      if (!existingUser) throw 'User Not Found !';
+
+      // Checking if cashier actually exist
+      const existingUsername = await prisma.user.findFirst({
+        where: { username: username },
+      });
+
+      if (existingUsername && !password) throw 'Username Already Exist !';
+
+      let updateCashier: any = { username, role };
+
+      if (password) {
+        // hashing password
+        const salt = await genSalt(10);
+        const hashPassword = await hash(password, salt);
+
+        updateCashier.password = hashPassword;
+      }
+
+      // Upload user registration to database
+      const account = await prisma.user.update({
+        data: updateCashier,
+        where: {
+          id: cashierId,
+        },
+      });
+
+      // Setting login token
+      const payload = {
+        id: account.id,
+        username: account.username,
+        role: account.role,
+      };
+      const token = sign(payload, process.env.SECRET_JWT!, {
+        expiresIn: '1d',
+      });
+
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Account Updated!',
+        account,
+        token,
+      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error accounts',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error accounts',
+          msg: error,
+        });
+      }
+    }
+  }
+
+  async deleteAccount(req: Request, res: Response) {
+    try {
+      const { cashierId, deletedAt } = req.body;
+      // Checking if cashier actually exist
+      const existingUser = await prisma.user.findFirst({
+        where: { id: cashierId },
+      });
+
+      if (!existingUser) throw 'User Not Found !';
+
+      await prisma.user.update({
+        where: { id: Number(cashierId) },
+        data: {
+          isDeleted: true,
+          deletedAt,
+        },
+      });
+
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Account Hidden!',
+      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error accounts',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error accounts',
+          msg: error,
+        });
+      }
+    }
+  }
+
   async checkTokenExpiration(req: Request, res: Response) {
     res.status(200).send({
       status: 'ok',
       msg: 'token ok',
+      user: req.user,
     });
   }
 
@@ -210,8 +326,8 @@ export class AccountController {
       res.status(201).send({
         status: 'ok',
         msg: 'Shift submitted successfully',
-        createShift
-      })
+        createShift,
+      });
     } catch (error: any) {
       if (error.message) {
         res.status(401).send({

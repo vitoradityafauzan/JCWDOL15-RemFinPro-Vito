@@ -16,10 +16,12 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ImEnter, ImExit, ImStatsDots } from 'react-icons/im';
-import { PiCashRegisterThin } from 'react-icons/pi';
+import { PiCashRegisterThin, PiShoppingCartSimpleBold } from 'react-icons/pi';
 import Swal from 'sweetalert2';
+import { BiHomeAlt } from 'react-icons/bi';
 
 export function SideBar() {
+  const router = useRouter();
   const [checkInCookie, setCheckInCookie] = useState<any>(null);
 
   // const fetchCheckInCookie = async () => {
@@ -166,37 +168,93 @@ export function SideBar() {
           className=""
         />
       </div>
-      <div className="flex flex-col gap-5 items-center text-xl">
-        {checkInCookie?.userId ? (
-          <button
-            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
-            data-tip="Clock Out Shift"
-            onClick={handleCashierCheckOut}
-          >
-            <ImExit /> {checkInCookie.userId}
-          </button>
-        ) : (
+      {pathname.includes('/adminss') ? (
+        <div className="flex flex-col gap-5 items-center text-xl">
           <button
             className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md border-2 text-zinc-800 bg-accent hover:bg-white"
-            data-tip="Clock In Shift"
-            onClick={handleCashierCheckin}
+            data-tip="Home"
+            onClick={() => {
+              router.push('/adminss');
+            }}
           >
-            <ImEnter />
+            <BiHomeAlt />
           </button>
-        )}
-        <button
-          className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
-          data-tip="Transaction History"
-        >
-          <ImStatsDots />
-        </button>
-        <button
-          className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
-          data-tip="Open Transaction"
-        >
-          <PiCashRegisterThin />
-        </button>
-      </div>
+          <button
+            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+            data-tip="Sales History"
+            onClick={() => {
+              router.push('/adminss/sales-history');
+            }}
+          >
+            <ImStatsDots />
+          </button>
+          <button
+            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+            data-tip="Product Management"
+            onClick={() => {
+              router.push('/adminss/product-management');
+            }}
+          >
+            <PiShoppingCartSimpleBold />
+          </button>
+          <button
+            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+            data-tip="Cashier Management"
+            onClick={() => {
+              router.push('/adminss/cashier-management');
+            }}
+          >
+            <PiCashRegisterThin />
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-5 items-center text-xl">
+          {checkInCookie?.userId ? (
+            <button
+              className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+              data-tip="Clock Out Shift"
+              onClick={handleCashierCheckOut}
+            >
+              <ImExit /> {checkInCookie.userId}
+            </button>
+          ) : (
+            <button
+              className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md border-2 text-zinc-800 bg-accent hover:bg-white"
+              data-tip="Clock In Shift"
+              onClick={handleCashierCheckin}
+            >
+              <ImEnter />
+            </button>
+          )}
+          <button
+            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+            data-tip="Home"
+            onClick={() => {
+              router.push('/');
+            }}
+          >
+            <BiHomeAlt />
+          </button>
+          <button
+            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+            data-tip="Transaction History"
+            onClick={() => {
+              router.push('/transaction/history');
+            }}
+          >
+            <ImStatsDots />
+          </button>
+          <button
+            className="tooltip tooltip-right ease-in duration-150 p-3 rounded-md text-accent bg-white hover:bg-accent hover:text-zinc-800"
+            data-tip="Open Transaction"
+            onClick={() => {
+              router.push('/transaction');
+            }}
+          >
+            <PiCashRegisterThin />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

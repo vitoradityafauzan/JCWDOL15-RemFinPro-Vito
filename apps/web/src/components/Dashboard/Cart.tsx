@@ -66,6 +66,8 @@ export const Cart: React.FC = () => {
         throw toastSwal('error', 'User ID not found');
       }
 
+      if (!cart || cart.length === 0) throw 'Please add items to the cart beforehand';
+
       const { result } = await createTransaction(userId, cart, total);
 
       if (result.status !== 'ok') {

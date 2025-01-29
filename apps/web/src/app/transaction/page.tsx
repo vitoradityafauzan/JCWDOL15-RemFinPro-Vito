@@ -10,6 +10,7 @@ import {
   simpleSwal,
   toastSwal,
 } from '../utils/swalHelper';
+import { IOrderItems } from '@/types/transactionTypes';
 
 export default function Transaction() {
   const router = useRouter();
@@ -31,6 +32,8 @@ export default function Transaction() {
       setOrderItems(result.orderItems);
     } catch (error: any) {
       toastSwal('error', `${error}`);
+
+      router.push('/');
     }
   };
 
@@ -158,7 +161,7 @@ export default function Transaction() {
               </form>
               <div className="flex flex-col gap-5 items-center">
                 <h3 className="font-bold text-lg">Pay By Cash</h3>
-                <p className="py-4">Enter Customer's payment</p>
+                <p className="py-4">Enter Customers payment</p>
                 <input
                   type="number"
                   placeholder="amount"
@@ -198,7 +201,7 @@ export default function Transaction() {
               <div className="flex flex-col gap-5 items-center">
                 <h3 className="font-bold text-lg">Pay By Debit</h3>
                 <div>
-                  <p className="py-4">Enter Customer's debit credential</p>
+                  <p className="py-4">Enter Customers debit credential</p>
                   <input
                     type="text"
                     placeholder="debit credential"

@@ -31,7 +31,7 @@ export default function Login() {
       if (result.status === 'ok') {
         action.resetForm();
 
-        router.push(result.user.role === 'CASHIER' ? '/' : '/admin');
+        router.push(result.user.role === 'CASHIER' ? '/' : '/adminss');
 
         simpleSwal('success', 'Login Successfull');
       } else {

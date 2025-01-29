@@ -4,6 +4,90 @@ import { getCookie } from 'cookies-next';
 const base_url =
   process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api/';
 
+export const transactionAll = async () => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}transaction/all`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await res.json();
+
+    if (result.status !== 'ok') {
+      throw new Error(result.msg);
+    }
+
+    return { result };
+  } else {
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};
+
+export const transactionAccumulatedSales = async (sortOrder: string) => {
+  const res = await fetch(
+    `${base_url}transaction/sales-history?sort=${sortOrder}`,
+    {
+      method: 'GET',
+    },
+  );
+
+  const result = await res.json();
+
+  if (result.status !== 'ok') {
+    throw new Error(result.msg);
+  }
+
+  return { result };
+};
+
+export const transactionTotalItemPerDay = async () => {
+  const res = await fetch(`${base_url}transaction/total-items-sold-per-day`, {
+    method: 'GET',
+  });
+
+  const result = await res.json();
+
+  if (result.status !== 'ok') {
+    throw new Error(result.msg);
+  }
+
+  return { result };
+};
+
+export const transactionAbnormalPayment = async () => {
+  const res = await fetch(`${base_url}transaction/order-cash-abnormalities`, {
+    method: 'GET',
+  });
+
+  const result = await res.json();
+
+  return { result };
+};
+
+export const transactionShiftAll = async () => {
+  const res = await fetch(`${base_url}transaction/shift-all`, {
+    method: 'GET',
+  });
+
+  const result = await res.json();
+
+  return { result };
+};
+
+export const transactionShiftDetail = async (shiftId: number) => {
+  const res = await fetch(`${base_url}transaction/shift-details/${shiftId}`, {
+    method: 'GET',
+  });
+
+  const result = await res.json();
+
+  return { result };
+};
+
 // export const createTransaction = async (data: ITransactionCreate) => {
 export const createTransaction = async (
   cashierId: number,
@@ -35,7 +119,7 @@ export const createTransaction = async (
 
     return { result };
   } else {
-    return { result: { status: 'error', message: 'no token' } };
+    return { result: { status: 'error', msg: 'no token' } };
   }
 };
 
@@ -43,21 +127,18 @@ export const getActiveTransaction = async () => {
   const token = getCookie('cashewier-token');
 
   if (token) {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API_URL}transaction/active`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const res = await fetch(`${base_url}transaction/active`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     const result = await res.json();
 
     return { result };
   } else {
-    return { result: { status: 'error', message: 'no token' } };
+    return { result: { status: 'error', msg: 'no token' } };
   }
 };
 
@@ -71,29 +152,45 @@ export const finalizedTransaction = async (
   const token = getCookie('cashewier-token');
 
   if (token) {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API_URL}transaction/finalize`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          orderId,
-          payType,
-          amount,
-          debitCard,
-          updatedAt,
-        }),
+    const res = await fetch(`${base_url}transaction/finalize`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({
+        orderId,
+        payType,
+        amount,
+        debitCard,
+        updatedAt,
+      }),
+    });
 
     const result = await res.json();
 
     return { result };
   } else {
-    return { result: { status: 'error', message: 'no token' } };
+    return { result: { status: 'error', msg: 'no token' } };
   }
 };
 //orderId, payType, amount, debitCard
+
+export const transactionByCashier = async () => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}transaction/order-detail-by-cashier`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};

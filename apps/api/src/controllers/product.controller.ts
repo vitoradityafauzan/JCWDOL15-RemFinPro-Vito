@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
 import { Prisma } from '@prisma/client';
-
-
+import { log } from 'console';
 
 export class ProductController {
   // async getProducts(req: Request, res: Response) {
@@ -73,11 +72,18 @@ export class ProductController {
         where: filter,
         include: {
           Category: true,
+          Stock: true,
+          // Stock: {
+          //   select: {
+          //     totalStock: true,
+          //   },
+          // },
         },
       });
 
       res.status(200).send({
         status: 'ok',
+        msg: 'Products Fetched!',
         products,
       });
     } catch (error: any) {
@@ -102,6 +108,7 @@ export class ProductController {
         where: { id: Number(id) },
         include: {
           Category: true,
+          Stock: true,
         },
       });
 
@@ -109,7 +116,27 @@ export class ProductController {
         throw 'Product not found';
       }
 
-      res.status(200).json(product);
+      res.status(200).send({
+        status: 'ok',
+        msg: 'Product detail fetched',
+        product,
+      });
+
+      // const currentStock = await prisma.stock.findFirst({
+      //   select: {
+      //     totalStock: true,
+      //   },
+      //   where: {
+      //     productId: product.id,
+      //   },
+      // });
+
+      // res.status(200).send({
+      //   status: 'ok',
+      //   msg: 'Product detail fetched',
+      //   product,
+      //   stock: currentStock?.totalStock,
+      // });
     } catch (error: any) {
       if (error.message) {
         res.status(400).send({
@@ -185,5 +212,370 @@ export class ProductController {
   
   */
 
-  
+  async updateStock(req: Request, res: Response) {
+    try {
+      const { productId } = req.params;
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
+
+  async updateProduct(req: Request, res: Response) {
+    try {
+      // console.log('\n\n\nCreate Product API\n\n\n');
+
+      const port = process.env.PORT;
+
+      const { productId, productName, price, categoryId } = req.body;
+
+      if (req.file) {
+        const link = `http://localhost:${port}/api/public/products/${req?.file?.filename}`;
+
+        const updateProduct = await prisma.product.update({
+          data: {
+            productName,
+            price: Number(price),
+            categoryId: Number(categoryId),
+            imageUrls: link,
+          },
+          where: {
+            id: Number(productId),
+          },
+        });
+
+        console.log('\n\nssss');
+        console.log(updateProduct);
+        console.log('\n\n\n');
+
+        res.status(201).send({
+          status: 'ok',
+          msg: 'Product Successfully Updated',
+          product: updateProduct,
+        });
+      } else {
+        const updateProduct = await prisma.product.update({
+          data: {
+            productName,
+            price: Number(price),
+            categoryId: Number(categoryId),
+          },
+          where: {
+            id: Number(productId),
+          },
+        });
+
+        const newProduct = await prisma.product.findUnique({
+          where: {
+            id: Number(productId),
+          },
+          include: {
+            Category: true,
+            Stock: true,
+          },
+        });
+
+        res.status(201).send({
+          status: 'ok',
+          msg: 'Product Successfully Updated',
+          product: newProduct,
+        });
+      }
+
+      //
+      //
+      //
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
+
+  async createProduct(req: Request, res: Response) {
+    try {
+      console.log('\n\n\nCreate Product API\n\n\n');
+
+      const port = process.env.PORT;
+
+      let link = null;
+
+      if (req.file) {
+        link = `http://localhost:${port}/api/public/products/${req?.file?.filename}`;
+      }
+
+      const { productName, price, categoryId, stockAmount } = req.body;
+
+      const result = await prisma.$transaction(async (prisma) => {
+        const createProduct = await prisma.product.create({
+          data: {
+            productName,
+            price: Number(price),
+            categoryId: Number(categoryId),
+            imageUrls: link,
+          },
+        });
+
+        const createStock = await prisma.stock.create({
+          data: {
+            productId: createProduct.id,
+            totalStock: Number(stockAmount),
+          },
+        });
+
+        const createStockHistory = await prisma.stockHistory.create({
+          data: {
+            stockId: Number(createStock.id),
+            adminId: req.user.id,
+            currentStock: Number(stockAmount),
+            flowType: 'IN',
+            itemAmount: Number(stockAmount),
+            newStock: Number(stockAmount),
+          },
+        });
+
+        return { createProduct, createStock, createStockHistory };
+      });
+
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Product Successfully Created',
+        data: result.createProduct,
+      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
+
+  async getStockHistory(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const stock = await prisma.stock.findFirst({
+        where: {
+          productId: Number(id),
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const stockHistory = await prisma.stockHistory.findMany({
+        where: {
+          stockId: stock?.id,
+        },
+      });
+
+      res.status(200).send({
+        status: 'ok',
+        msg: 'Stock history fetched',
+        stockHistory,
+      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
 }
+
+//
+//
+//
+
+/*
+
+async updateProduct(req: Request, res: Response) {
+    try {
+      console.log('\n\n\nCreate Product API\n\n\n');
+
+      const port = process.env.PORT;
+
+      const { productName, price, categoryId, stockAmount } = req.body;
+
+      const oldProduct = await prisma.product.findUnique({
+        where: {
+          productName: productName,
+        },
+        include: {
+          Stock: {
+            select: {
+              totalStock: true,
+            },
+          },
+          Category: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (req.file) {
+        const link = `http://localhost:${port}/api/public/products/${req?.file?.filename}`;
+
+        if (stockAmount !== oldProduct?.Stock[0].totalStock) {
+          const result = await prisma.$transaction(async (prisma) => {
+            const createProduct = await prisma.product.create({
+              data: {
+                productName,
+                price: Number(price),
+                categoryId: Number(categoryId),
+                imageUrls: link,
+              },
+            });
+
+            const createStock = await prisma.stock.create({
+              data: {
+                productId: createProduct.id,
+                totalStock: Number(stockAmount),
+              },
+            });
+
+            const createStockHistory = await prisma.stockHistory.create({
+              data: {
+                stockId: Number(createStock.id),
+                adminId: req.user.id,
+                currentStock: Number(stockAmount),
+                flowType: 'IN',
+                itemAmount: Number(stockAmount),
+                newStock: Number(stockAmount),
+              },
+            });
+
+            return { createProduct, createStock, createStockHistory };
+          });
+
+          res.status(201).send({
+            status: 'ok',
+            msg: 'Product Successfully Created',
+            product: result.createProduct,
+          });
+        } else {
+          const result = await prisma.$transaction(async (prisma) => {
+            const createProduct = await prisma.product.create({
+              data: {
+                productName,
+                price: Number(price),
+                categoryId: Number(categoryId),
+                imageUrls: link,
+              },
+            });
+            return { createProduct };
+          });
+
+          res.status(201).send({
+            status: 'ok',
+            msg: 'Product Successfully Created',
+            product: result.createProduct,
+          });
+        }
+      } else {
+        if (stockAmount !== oldProduct?.Stock[0].totalStock) {
+          const result = await prisma.$transaction(async (prisma) => {
+            const createProduct = await prisma.product.create({
+              data: {
+                productName,
+                price: Number(price),
+                categoryId: Number(categoryId),
+              },
+            });
+
+            const createStock = await prisma.stock.create({
+              data: {
+                productId: createProduct.id,
+                totalStock: Number(stockAmount),
+              },
+            });
+
+            const createStockHistory = await prisma.stockHistory.create({
+              data: {
+                stockId: Number(createStock.id),
+                adminId: req.user.id,
+                currentStock: Number(stockAmount),
+                flowType: 'IN',
+                itemAmount: Number(stockAmount),
+                newStock: Number(stockAmount),
+              },
+            });
+
+            return { createProduct, createStock, createStockHistory };
+          });
+
+          res.status(201).send({
+            status: 'ok',
+            msg: 'Product Successfully Created',
+            product: result.createProduct,
+          });
+        } else {
+          const result = await prisma.$transaction(async (prisma) => {
+            const createProduct = await prisma.product.create({
+              data: {
+                productName,
+                price: Number(price),
+                categoryId: Number(categoryId),
+              },
+            });
+            return { createProduct };
+          });
+
+          res.status(201).send({
+            status: 'ok',
+            msg: 'Product Successfully Created',
+            product: result.createProduct,
+          });
+        }
+      }
+
+      //
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
+
+*/

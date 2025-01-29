@@ -4,9 +4,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { IoSearchOutline } from 'react-icons/io5';
 import { HeaderModal } from './HeaderModal';
 import { PiGearFineFill } from 'react-icons/pi';
-import { checkTokenExpiration } from '@/lib/account';
+import {
+  checkTokenExpiration,
+  checkTokenExpirationAdmins,
+} from '@/lib/account';
 import { deleteCookie, getCookie } from 'cookies-next';
-import { simpleSwal,  toastSwal } from '@/app/utils/swalHelper';
+import { simpleSwal, toastSwal } from '@/app/utils/swalHelper';
 import { useEffect } from 'react';
 
 export const Header = () => {
@@ -31,28 +34,42 @@ export const Header = () => {
       // const token = await getCookie('cashewier-token');
       // if (!token) throw 'Please Login Before Accessing Profile!';
 
-      const { result } = await checkTokenExpiration();
+      if (pathname.includes('/adminss')) {
+        // Logic for admin pages
+        const { result } = await checkTokenExpirationAdmins();
 
-      if (result.status !== 'ok') throw result.msg;
+        if (result.status !== 'ok') throw result.msg;
+      } else {
+        // Logic for non-admin pages
+        const { result } = await checkTokenExpiration();
+
+        if (result.status !== 'ok') throw result.msg;
+
+        if (result.user.role == 'ADMIN')
+          throw 'You are not authorized to access this route!!';
+      }
     } catch (err: any) {
       if (err === `no token`) {
         router.push('/login');
 
-        // Show the Swal notification
         toastSwal('error', `Please Login Before Accessing Further!`);
-        // simpleSwal('error', `Please Login Before Accessing Further!`);
       } else if (err === `jwt expired`) {
         deleteCookie('cashewier-token');
 
         router.push('/login');
 
-        toastSwal('error', `Session Expired, Please Login Before Accessing Further!`);
+        toastSwal(
+          'error',
+          `Session Expired, Please Login Before Accessing Further!`,
+        );
+      } else if (err == 'You are not authorized to access this route!') {
+        router.push('/');
 
-        // Show the Swal notification
-        // simpleSwal(
-        //   'error',
-        //   `Session Expired, Please Login Before Accessing Further!`,
-        // );
+        toastSwal('error', `${err}`);
+      } else if (err == 'You are not authorized to access this route!!') {
+        router.push('/adminss');
+
+        toastSwal('error', `${err}`);
       } else {
         toastSwal('error', `${err}`);
       }
@@ -194,7 +211,7 @@ export const Header = () => {
           </div>
           <div className="navbar-end flex items-center gap-1 lg:gap-6">
             {/* Search Modal */}
-            <HeaderModal />
+            {/* <HeaderModal /> */}
             {/* Avatar */}
             <div className="dropdown dropdown-end">
               {/* Avatar img */}
@@ -210,7 +227,7 @@ export const Header = () => {
                     />
                   </div>
                 </div> */}
-              <button className="btn btn-outline btn-sm btn-error text-lg">
+              <button className="mr-6 btn btn-outline btn-sm btn-error text-lg">
                 <PiGearFineFill />
               </button>
               {/* Avatar drawer */}

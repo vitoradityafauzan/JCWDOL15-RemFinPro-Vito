@@ -26,7 +26,32 @@ export const checkTokenExpiration = async () => {
 
     return { result };
   } else {
-    return { result: { status: 'error', message: 'no token' } };
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};
+
+export const checkTokenExpirationAdmins = async () => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API_URL}account/check-token-admin`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
   }
 };
 
@@ -109,7 +134,10 @@ export const cashierCheckIn = async (
   );
 };
 
-export const cashierCheckOut = async (newCashTotal: number, checkOutTime: string) => {
+export const cashierCheckOut = async (
+  newCashTotal: number,
+  checkOutTime: string,
+) => {
   const token = getCookie('cashewier-token');
 
   if (token) {
@@ -130,7 +158,7 @@ export const cashierCheckOut = async (newCashTotal: number, checkOutTime: string
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
 
           body: JSON.stringify({
@@ -155,5 +183,105 @@ export const cashierCheckOut = async (newCashTotal: number, checkOutTime: string
     return {
       result: { status: 'error account', msg: 'Invalid/Expired Session!' },
     };
+  }
+};
+
+const base_url =
+  process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api/';
+
+export const fetchCashiers = async () => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}account/fetch-all`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    return {
+      result: {
+        status: 'ok',
+        msg: 'Cashiers Data Fetched',
+        accounts: data.accounts.filter(
+          (account: { role: string }) => account.role === 'CASHIER',
+        ),
+      },
+    };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};
+
+export const addCashier = async (data: ILogin) => {
+  const res = await fetch(`${base_url}account/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: data.username,
+      password: data.password,
+      role: 'CASHIER',
+    }),
+  });
+  const result = await res.json();
+  return { result };
+  // return result.account;
+};
+
+export const updateCashier = async (id: number, data: ILogin) => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}account/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        cashierId: id,
+        username: data.username,
+        password: data.password ? data.password : '',
+        role: 'CASHIER',
+      }),
+    });
+    const result = await res.json();
+    return { result };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};
+
+export const deleteCashier = async (id: number) => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const deletedTime = new Date();   
+    const deletedAt = deletedTime.toISOString();
+
+    const res = await fetch(`${base_url}account/delete`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        cashierId: id,
+        deletedAt,
+      }),
+    });
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
   }
 };

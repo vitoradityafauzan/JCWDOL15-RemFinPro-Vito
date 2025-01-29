@@ -39,6 +39,36 @@ export class TransactionRouter {
       verifyToken,
       this.transationController.finalizedTransaction,
     );
+    this.router.get(
+      '/sales-history',
+      this.transationController.getSalesHistory,
+    );
+    this.router.get(
+      '/total-transactions-per-day',
+      this.transationController.getTotalTransactionsPerDay,
+    );
+    this.router.get(
+      '/total-items-sold-per-day',
+      this.transationController.getTotalItemsSoldPerDay,
+    );
+    this.router.get('/shift-all', this.transationController.getShiftAll);
+    this.router.get(
+      '/shift-details/:shiftId',
+      this.transationController.getShiftDetails,
+    );
+    this.router.get(
+      '/order-cash-abnormalities',
+      this.transationController.findOrderCashAbnormalities,
+    );
+    this.router.get(
+      '/order-detail-by-cashier',
+      verifyToken,
+      this.transationController.getOrderByCashier,
+    );
+    this.router.get(
+      '/cash-register-abnormalities',
+      this.transationController.findCashRegisterAbnormalities,
+    );
   }
   getRouter(): Router {
     return this.router;

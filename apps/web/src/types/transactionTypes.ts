@@ -1,4 +1,4 @@
-interface IOrderItems {
+export interface IOrderItems {
   id: number;
   orderId: number;
   productId: number;

@@ -11,6 +11,7 @@ interface IProductCardProps {
   image: string | undefined;
   imgAlt: string;
   price: number;
+  stock?: number;
 }
 
 export const ProductCard: React.FC<IProductCardProps> = ({
@@ -19,6 +20,7 @@ export const ProductCard: React.FC<IProductCardProps> = ({
   image,
   imgAlt,
   price,
+  stock
 }) => {
   const { cart, addCartItemContext } = useContextGlobal();
 
@@ -29,7 +31,8 @@ export const ProductCard: React.FC<IProductCardProps> = ({
       </figure>
       <div className="card-body gap-4">
         <h2 className="card-title text-base line-clamp-2">{name}</h2>
-        <p className="">{currencyFormat(price)}</p>
+        <h2 className="">{currencyFormat(price)}</h2>
+        <h3>current stock, {stock}</h3>
         <div className="card-actions justify-end">
           <button
             className="btn btn-outline btn-success"
