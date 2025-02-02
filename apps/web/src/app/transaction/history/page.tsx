@@ -38,15 +38,17 @@ export default function TransactionHistory() {
             <th>Total Items</th>
             <th>Payment Type</th>
             <th>Total Paid</th>
+            <th>Payment Date</th>
           </tr>
         </thead>
         <tbody>
           {orders &&
             orders.map((ord) => (
-              <tr>
+              <tr key={ord.id}>
                 <td>{ord.totalItems}</td>
                 <td>{ord.payType}</td>
                 <td>{currencyFormat(ord.totalPaid)}</td>
+                <td>{new Date(ord.createdAt).toLocaleString()}</td>
               </tr>
             ))}
         </tbody>

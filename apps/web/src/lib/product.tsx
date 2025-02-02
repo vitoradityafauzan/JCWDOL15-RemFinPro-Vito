@@ -3,6 +3,7 @@ import {
   IProductGet,
   ITransactionCreate,
   IUpdateProduct,
+  IUpdateStock,
 } from '@/types/productTypes';
 import { getCookie } from 'cookies-next';
 
@@ -105,6 +106,34 @@ export const updateProduct = async (data: IUpdateProduct) => {
   }
 };
 
+export const updateStock = async (data: IUpdateStock, productId: number) => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    console.log('\n\nLIB UpdateStock,', productId,' \n\n');
+    
+    const res = await fetch(`${base_url}product/stok/update-stock`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        productId: productId,
+        flowType: data.flowType,
+        amount: data.amount,
+      }),
+    });
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};
+
 export const productStokHistory = async (stokId: number) => {
   const res = await fetch(`${base_url}product/stok/stok-history/${stokId}`, {
     method: 'GET',
@@ -114,4 +143,3 @@ export const productStokHistory = async (stokId: number) => {
 
   return { result };
 };
-

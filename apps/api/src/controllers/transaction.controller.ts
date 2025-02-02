@@ -153,7 +153,7 @@ export class TransactionController {
 
   async finalizedTransaction(req: Request, res: Response) {
     try {
-      const { orderId, payType, amount, debitCard, updatedAt } = req.body;
+      const { orderId, payType, amount, cashChange, debitCard, updatedAt } = req.body;
 
       const orderItems = await prisma.orderItem.findMany({
         where: {
@@ -170,6 +170,7 @@ export class TransactionController {
             data: {
               status: 'PAID',
               totalPaid: amount,
+              cashChange,
               payType: 'CASH',
               updatedAt,
             },
@@ -456,6 +457,7 @@ export class TransactionController {
         const totalOrderAmount = await prisma.order.aggregate({
           _sum: {
             totalPrice: true,
+            cashChange: true,
           },
           where: {
             cashierId: shift.cashierId,
@@ -467,8 +469,12 @@ export class TransactionController {
         });
 
         const totalOrder = totalOrderAmount._sum.totalPrice || 0;
-        const cashDifference =
-          shift.newCashTotal - (shift.currentCashTotal + totalOrder);
+        // const cashDifference =
+        //   shift.newCashTotal - (shift.currentCashTotal + totalOrder);
+        const totalCashChange = totalOrderAmount._sum.cashChange || 0;
+      const cashDifference =
+        shift.newCashTotal - (shift.currentCashTotal + totalOrder - totalCashChange);
+
 
         if (cashDifference !== 0) {
           results.push({

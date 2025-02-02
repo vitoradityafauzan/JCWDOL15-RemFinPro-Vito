@@ -23,6 +23,11 @@ export class ProductRouter {
       '/stok/stok-history/:id',
       this.productController.getStockHistory,
     );
+    this.router.put(
+      '/stok/update-stock',
+      verifyToken,
+      this.productController.updateStock,
+    );
     this.router.post(
       '/create',
       uploader('product-', '/products').single('imageUrl'),

@@ -49,21 +49,38 @@ export default function Transaction() {
       const formattedDateTime = currentTime.toISOString();
 
       const amount = amountRef.current?.value;
-      const debitCard = debitCardRef.current?.value || '';
+
+      let res: any = null;
 
       if (Number(amount) < order.totalPrice) throw 'Insufficient Amount';
 
-      const res = await confirmationWithoutSuccessMessageSwal(
-        `Your'e About To Finalize This Transaction`,
-        'Are you sure?',
-      );
+      if (Number(amount) > order.totalPrice) {
+        res = await confirmationWithoutSuccessMessageSwal(
+          `Your'e About To Finalize This Transaction With The Change Of ${currencyFormat(Number(amount) - order.totalPrice)}`,
+          'Are you sure?',
+        );
+      } else {
+        res = await confirmationWithoutSuccessMessageSwal(
+          `Your'e About To Finalize This Transaction`,
+          'Are you sure?',
+        );
+      }
 
       if (res) {
+        /*
+        orderId: number,
+        payType: string,
+        amount: number,
+        cashChange: number,
+        debitCard: string,
+        updatedAt: string,
+        */
         const { result } = await finalizedTransaction(
           order.id,
           'CASH',
           Number(amount),
-          debitCard,
+          Number(amount) - order.totalPrice,
+          '',
           formattedDateTime,
         );
 
@@ -83,7 +100,6 @@ export default function Transaction() {
       const currentTime = new Date();
       const formattedDateTime = currentTime.toISOString();
 
-      const amount = amountRef.current?.value;
       const debitCard = debitCardRef.current?.value || '';
 
       const res = await confirmationWithoutSuccessMessageSwal(
@@ -92,10 +108,19 @@ export default function Transaction() {
       );
 
       if (res) {
+        /*
+        orderId: number,
+        payType: string,
+        amount: number,
+        cashChange: number,
+        debitCard: string,
+        updatedAt: string,
+        */
         const { result } = await finalizedTransaction(
           order.id,
           'DEBIT',
           Number(order.totalPrice),
+          0,
           debitCard,
           formattedDateTime,
         );
@@ -121,13 +146,12 @@ export default function Transaction() {
         {orderItems &&
           orderItems?.map((oi) => (
             <div
-              className="flex gap-2 w-4/6 border-x-4 rounded-md h-fit"
+              className="flex gap-2 w-2/6 border-x-4 rounded-md h-fit p-6"
               key={oi.id}
             >
-              <div className="basis-2/6 h-36 border-2 border-red-500"></div>
-              <div className="basis-4/6 ">
-                <h1>{oi.Product.productName}</h1>
-                <h2>{oi.quantity}</h2>
+              <div className="flex flex-col gap-4 text-lg">
+                <h1 className='font-bold'>{oi.Product.productName}</h1>
+                <h2>x{oi.quantity}</h2>
                 <h2>{currencyFormat(oi.totalPrice)}</h2>
               </div>
             </div>

@@ -132,6 +132,7 @@ model Order {
   totalPrice Float
   status     Status  @default(PENDING)
   totalPaid Float?
+  cashChange Float?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt

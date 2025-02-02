@@ -214,7 +214,67 @@ export class ProductController {
 
   async updateStock(req: Request, res: Response) {
     try {
-      const { productId } = req.params;
+      const { productId, flowType, amount } = req.body;
+
+      console.log('\n\n\nAPI Update Stock, ', productId, '\n\n\n');
+      
+
+      const productStock = await prisma.stock.findFirst({
+        where: {
+          productId: Number(productId),
+        },
+      });
+
+      if (!productStock) throw 'Product Didnt Exist';
+
+      if (flowType === 'IN') {
+        const updateStock = await prisma.stock.updateMany({
+          data: {
+            totalStock: productStock.totalStock + Number(amount),
+          },
+          where: {
+            productId: Number(productId),
+          },
+        });
+
+        const addHistory = await prisma.stockHistory.create({
+          data: {
+            stockId: productStock.id,
+            adminId: req.user.id,
+            currentStock: productStock.totalStock,
+            flowType: 'IN',
+            itemAmount: Number(amount),
+            newStock: productStock.totalStock + Number(amount),
+          },
+        });
+      } else {
+        if (Number(amount) > productStock.totalStock) throw 'Amount Exceeded!';
+
+        const updateStock = await prisma.stock.updateMany({
+          data: {
+            totalStock: productStock.totalStock - Number(amount),
+          },
+          where: {
+            productId: Number(productId),
+          },
+        });
+
+        const addHistory = await prisma.stockHistory.create({
+          data: {
+            stockId: productStock.id,
+            adminId: req.user.id,
+            currentStock: productStock.totalStock,
+            flowType: 'OUT',
+            itemAmount: Number(amount),
+            newStock: productStock.totalStock - Number(amount),
+          },
+        });
+      }
+
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Stock Updated Successfully',
+      });
     } catch (error: any) {
       if (error.message) {
         res.status(400).send({
@@ -238,6 +298,14 @@ export class ProductController {
 
       const { productId, productName, price, categoryId } = req.body;
 
+      const product = await prisma.product.findUnique({
+        where: {
+          id: Number(productId),
+        },
+      });
+
+      if (!product) throw 'Product Not Exist!';
+
       if (req.file) {
         const link = `http://localhost:${port}/api/public/products/${req?.file?.filename}`;
 
@@ -257,10 +325,20 @@ export class ProductController {
         console.log(updateProduct);
         console.log('\n\n\n');
 
+        const newProduct = await prisma.product.findUnique({
+          where: {
+            id: Number(productId),
+          },
+          include: {
+            Category: true,
+            Stock: true,
+          },
+        });
+
         res.status(201).send({
           status: 'ok',
           msg: 'Product Successfully Updated',
-          product: updateProduct,
+          product: newProduct,
         });
       } else {
         const updateProduct = await prisma.product.update({

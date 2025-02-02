@@ -9,13 +9,18 @@ import {
   FormikHelpers,
   useFormikContext,
 } from 'formik';
-import { simpleSwal, toastSwal } from '@/app/utils/swalHelper';
+import {
+  confirmationWithoutSuccessMessageSwal,
+  simpleSwal,
+  toastSwal,
+} from '@/app/utils/swalHelper';
 import {
   ICategories,
   ICreateProduct,
   IProductGet,
   IStokHistory,
   IUpdateProduct,
+  IUpdateStock,
 } from '@/types/productTypes';
 import {
   productList,
@@ -23,12 +28,14 @@ import {
   createProduct,
   updateProduct,
   productStokHistory,
+  updateStock,
 } from '@/lib/product';
 import {
   loginSchema,
   editAccountSchema,
   addProductSchema,
   editProductSchema,
+  editStockSchema,
 } from '@/app/utils/formSchema';
 import Image from 'next/image';
 
@@ -98,7 +105,7 @@ const ProductManagement: React.FC = () => {
       console.log(result.status);
       console.log('\n\n');
       console.log(result);
-      
+
       setStokHistory(result.stockHistory);
     } catch (error: any) {
       toastSwal('error', `${error}`);
@@ -119,16 +126,24 @@ const ProductManagement: React.FC = () => {
     action: FormikHelpers<ICreateProduct>,
   ) => {
     try {
-      console.log('handleAddSubmit');
-      console.log(data);
+      const confirm = await confirmationWithoutSuccessMessageSwal(
+        `Your'e About To Finalize This Changes`,
+        'Are you sure?',
+      );
 
-      const { result } = await createProduct(data);
+      if (confirm) {
+        const { result } = await createProduct(data);
 
-      if (result.status !== 'ok') throw `${result.msg}`;
+        if (result.status !== 'ok') throw `${result.msg}`;
 
-      action.resetForm();
+        action.resetForm();
 
-      simpleSwal('success', `${result.msg}`);
+        await fetchData();
+
+        simpleSwal('success', `${result.msg}`);
+      } else {
+        action.resetForm();
+      }
     } catch (error: any | string) {
       action.resetForm();
 
@@ -141,44 +156,78 @@ const ProductManagement: React.FC = () => {
     action: FormikHelpers<IUpdateProduct>,
   ) => {
     try {
-      console.log('Log Comp, data form, \n');
-      console.log(data);
-      console.log('\n');
-
-      // alert('s');
-
-      // Sending Form Data To Action
-      const { result } = await updateProduct(data);
-
-      if (result.status !== 'ok') {
-        throw result.msg;
-      }
-
-      console.log('\n\nupdate form success, \n');
-      console.log(result);
-      console.log('\n\n\n');
-
-      action.resetForm();
-
-      setProducts(
-        products.map((product) =>
-          product.id === (selectedProduct?.productId ?? 0)
-            ? result.product
-            : product,
-        ),
+      const confirm = await confirmationWithoutSuccessMessageSwal(
+        `Your'e About To Finalize This Changes`,
+        'Are you sure?',
       );
 
-      toastSwal('success', `${result.msg}`);
+      if (confirm) {
+        // Sending Form Data To Action
+        const { result } = await updateProduct(data);
+
+        if (result.status !== 'ok') {
+          throw result.msg;
+        }
+
+        console.log('\n\nupdate form success, \n');
+        console.log(result);
+        console.log('\n\n\n');
+
+        action.resetForm();
+
+        setProducts(
+          products.map((product) =>
+            product.id === (selectedProduct?.productId ?? 0)
+              ? result.product
+              : product,
+          ),
+        );
+
+        toastSwal('success', `${result.msg}`);
+      } else {
+        action.resetForm();
+      }
+    } catch (error: any | string) {
+      toastSwal('error', error);
+    }
+  };
+
+  const handleStockEditSubmit = async (
+    data: IUpdateStock,
+    action: FormikHelpers<IUpdateStock>,
+  ) => {
+    try {
+      const confirm = await confirmationWithoutSuccessMessageSwal(
+        `Your'e About To Finalize This Changes`,
+        'Are you sure?',
+      );
+
+      if (confirm) {
+        const { result } = await updateStock(
+          data,
+          selectedProduct?.productId ?? 0,
+        );
+
+        if (result.status !== 'ok') throw result.msg;
+
+        action.resetForm();
+
+        await fetchData();
+
+        toastSwal('success', `${result.msg}`);
+      } else {
+        action.resetForm();
+      }
     } catch (error: any | string) {
       toastSwal('error', error);
     }
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="flex flex-col h-full gap-3 mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Product Management</h1>
       <button
-        className="btn btn-outline btn-success mb-4"
+        className="btn btn-outline btn-success w-1/6 mb-4"
         onClick={() =>
           (
             document.getElementById('add-product') as HTMLDialogElement
@@ -210,7 +259,7 @@ const ProductManagement: React.FC = () => {
         </select>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto h-full">
         <table className="table">
           <thead>
             <tr>
@@ -224,7 +273,7 @@ const ProductManagement: React.FC = () => {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id}  className='hover h-16'>
+              <tr key={product.id} className="hover h-16">
                 <td>{product.id}</td>
                 <td>{product.productName}</td>
                 <td>{product.Category.categoryName}</td>
@@ -280,6 +329,39 @@ const ProductManagement: React.FC = () => {
                           }}
                         >
                           Stok History
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          className="btn btn-accent basis-3/6"
+                          onClick={async () => {
+                            // alert(product.Stock ? product.Stock[0].id : 'N/A');
+                            // const stockId = product.Stock
+                            //   ? product.Stock[0].id
+                            //   : 0;
+
+                            // const stockk =
+                            //   product.Stock && product.Stock.length > 0
+                            //     ? product.Stock[0].id
+                            //     : 0;
+                            // alert(stockk);
+
+                            await setSelectedProduct({
+                              productId: product.id,
+                              imageUrl: product.imageUrls,
+                              productName: product.productName,
+                              price: product.price,
+                              categoryId: product.categoryId,
+                            }); // Set the selected cashier
+
+                            (
+                              document.getElementById(
+                                'edit-stock',
+                              ) as HTMLDialogElement
+                            )?.showModal(); // Show the modal
+                          }}
+                        >
+                          Edit Stock
                         </button>
                       </li>
                     </ul>
@@ -504,14 +586,15 @@ const ProductManagement: React.FC = () => {
                 validationSchema={editProductSchema}
                 onSubmit={async (values, actions) => {
                   console.log('submit button slicked');
-                  // Call the form submission handler
-                  await handleEditSubmit(values, actions);
 
                   // Close the modal programmatically
                   const modal = document.getElementById(
                     'edit-product',
                   ) as HTMLDialogElement;
                   modal?.close();
+
+                  // Call the form submission handler
+                  await handleEditSubmit(values, actions);
                 }}
                 // onSubmit={handleEditSubmit}
                 enableReinitialize
@@ -690,126 +773,64 @@ const ProductManagement: React.FC = () => {
           </div>
         </div>
       </dialog>
-    </div>
-  );
-};
 
-export default ProductManagement;
+      {/*  */}
 
-/*
-<Formik
+      <dialog id="edit-stock" className="modal">
+        <div className="modal-box">
+          <form method="dialog">
+            {/* if there is a button in form, it will close the modal */}
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <div className="flex flex-col gap-5 items-center">
+            <h3 className="font-bold text-lg">Edit Stock</h3>
+            <div>
+              <Formik
                 initialValues={{
-                  imageUrl: '',
-                  productName: selectedProduct
-                    ? selectedProduct.productName
-                    : '',
-                  categoryId: selectedProduct ? selectedProduct.categoryId : 0,
-                  price: selectedProduct ? selectedProduct.price : 0,
+                  flowType: 'IN',
+                  amount: 0,
                 }}
-                validationSchema={addProductSchema}
+                validationSchema={editStockSchema}
                 onSubmit={async (values, actions) => {
                   console.log('submit button slicked');
+                  console.log(selectedProduct);
+
                   // Call the form submission handler
-                  await handleEditSubmit(values, actions);
+                  await handleStockEditSubmit(values, actions);
 
                   // Close the modal programmatically
                   const modal = document.getElementById(
-                    'edit-product',
+                    'edit-stock',
                   ) as HTMLDialogElement;
                   modal?.close();
                 }}
-                enableReinitialize
               >
                 {({ setFieldValue, values }) => {
                   return (
                     <Form className="flex flex-col gap-5 p-5  border-0">
-                      {imagePreview ? (
-                        <div className="grow m-4 h-96 border-4 border-dashed">
-                          <Image
-                            src={imagePreview}
-                            alt="No Image"
-                            width={0}
-                            height={0}
-                            sizes="100vw"
-                            className="w-full h-full"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-5/6 h-56 border-4 border-dashed">
-                          No Image
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-5">
-                        <label htmlFor="image">Upload Image</label>
-                        <input
-                          type="file"
-                          id="image"
-                          name="image"
-                          accept="image/*"
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            setFieldValue('imageUrl', file);
-
-                            if (file) {
-                              // console.log(file);
-
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setImagePreview(reader.result as string);
-                              };
-                              reader.readAsDataURL(file);
-                            } else {
-                              setImagePreview(null);
-                            }
-                          }}
-                        />
-                        <ErrorMessage
-                          name="imageUrl"
-                          component="div"
-                          className="text-red-500"
-                        />
-                      </div>
-
+                      {/* Input flow type */}
                       <div className="form-control w-full max-w-lg">
                         <div className="label">
                           <span className="label-text text-lg">
-                            Product Name
+                            Stock Flow Type
                           </span>
                         </div>
                         <Field
-                          type="text"
-                          name="productName"
-                          placeholder="Type Product Name"
-                          className="input input-bordered input-accent w-full max-w-md p-3 rounded-lg"
-                        />
-                        <ErrorMessage
-                          name="productName"
-                          component="div"
-                          className="text-red-500"
-                        />
-                      </div>
-
-                      <div className="form-control w-full max-w-lg">
-                        <div className="label">
-                          <span className="label-text text-lg">category</span>
-                        </div>
-                        <select
+                          as="select"
                           className="select select-accent w-full border-2"
+                          name="flowType"
                           onChange={(
                             e: React.ChangeEvent<HTMLSelectElement>,
                           ) => {
-                            setFieldValue('categoryId', Number(e.target.value));
+                            setFieldValue('flowType', e.target.value);
                           }}
-                          value={values.categoryId}
+                          value={values.flowType}
                         >
-                          <option value="">Select Category</option>
-                          {categories!.map((cat: any) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.categoryName}
-                            </option>
-                          ))}
-                        </select>
+                          <option value="IN">IN</option>
+                          <option value="OUT">OUT</option>
+                        </Field>
                         <ErrorMessage
                           name="categoryId"
                           component="div"
@@ -817,14 +838,15 @@ export default ProductManagement;
                         />
                       </div>
 
+                      {/* Input amount */}
                       <div className="form-control w-full max-w-md">
                         <div className="label">
-                          <span className="label-text text-lg">price</span>
+                          <span className="label-text text-lg">Amount</span>
                         </div>
                         <Field
                           type="number"
-                          name="price"
-                          placeholder="Type price here"
+                          name="amount"
+                          placeholder="Type new stock amount"
                           className="input input-bordered input-accent w-full max-w-md p-3 rounded-lg"
                         />
                         <ErrorMessage
@@ -846,4 +868,14 @@ export default ProductManagement;
                   );
                 }}
               </Formik>
-*/
+            </div>
+          </div>
+        </div>
+      </dialog>
+
+      {/*  */}
+    </div>
+  );
+};
+
+export default ProductManagement;

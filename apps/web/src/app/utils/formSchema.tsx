@@ -46,6 +46,11 @@ export const addProductSchema = yup.object().shape({
   // stockAmount: yup.number().required('Stock Amount Required'),
 });
 
+export const editStockSchema = yup.object().shape({
+  flowType: yup.string(),
+  amount: yup.number().positive('Amount must be positive'),
+});
+
 // export const addProductSchema = yup.object().shape({
 //   // imageUrl: yup.string(),
 //   productName: yup.string().required('Product Name Is Required!'),

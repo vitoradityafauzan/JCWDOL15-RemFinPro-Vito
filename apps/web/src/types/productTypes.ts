@@ -76,3 +76,8 @@ export interface IStokHistory {
   isDeleted: boolean;
   deletedAt?: string;
 }
+
+export interface IUpdateStock {
+  flowType: string;
+  amount: number;
+}

@@ -146,6 +146,7 @@ export const finalizedTransaction = async (
   orderId: number,
   payType: string,
   amount: number,
+  cashChange: number,
   debitCard: string,
   updatedAt: string,
 ) => {
@@ -162,6 +163,7 @@ export const finalizedTransaction = async (
         orderId,
         payType,
         amount,
+        cashChange,
         debitCard,
         updatedAt,
       }),
