@@ -38,6 +38,8 @@ model Category {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
 
   Product Product[]
 }
@@ -83,7 +85,6 @@ model Stock {
   Product Product @relation(fields: [productId], references: [id])
 
   StockHistory StockHistory[]
-  // StockFlow    StockFlow[]
 }
 
 model StockHistory {
@@ -103,20 +104,6 @@ model StockHistory {
   User  User  @relation(fields: [adminId], references: [id])
   Stock Stock @relation(fields: [stockId], references: [id])
 }
-
-// model StockFlow {
-//   id      Int @id @default(autoincrement())
-//   userId  Int
-//   stockId Int
-
-//   createdAt DateTime  @default(now())
-//   updatedAt DateTime  @default(now()) @updatedAt
-//   isDeleted Boolean   @default(false)
-//   deletedAt DateTime?
-
-//   User      User     @relation(fields: [userId], references: [id])
-//   Stock     Stock    @relation(fields: [stockId], references: [id])
-// }
 
 enum Status {
   PENDING

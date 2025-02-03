@@ -48,7 +48,11 @@ export default function TransactionHistory() {
                 <td>{ord.totalItems}</td>
                 <td>{ord.payType}</td>
                 <td>{currencyFormat(ord.totalPaid)}</td>
-                <td>{new Date(ord.createdAt).toLocaleString()}</td>
+                <td>
+                  {new Date(ord.createdAt).toLocaleString('id-ID', {
+                    timeZone: 'Asia/Bangkok',
+                  })}
+                </td>
               </tr>
             ))}
         </tbody>

@@ -122,10 +122,14 @@ const SalesHistory = () => {
                       </td>
                       <td className="pl-4">{order.status}</td>
                       <td className="pl-4">
-                        {new Date(order.createdAt).toLocaleString()}
+                        {new Date(order.createdAt).toLocaleString('id-ID', {
+                          timeZone: 'Asia/Bangkok',
+                        })}
                       </td>
                       <td className="pl-4">
-                        {new Date(order.updatedAt).toLocaleString()}
+                        {new Date(order.updatedAt).toLocaleString('id-ID', {
+                          timeZone: 'Asia/Bangkok',
+                        })}
                       </td>
                     </tr>
                   ))}
@@ -254,13 +258,17 @@ const SalesHistory = () => {
                     <td className="pl-4">{order.id}</td>
                     <td className="pl-4">{order.User?.username}</td>
                     <td className="pl-4">
-                      {new Date(order.CheckInTime).toLocaleString()}
+                      {new Date(order.CheckInTime).toLocaleString('id-ID', {
+                          timeZone: 'Asia/Bangkok',
+                        })}
                     </td>
                     <td className="pl-4">
                       {currencyFormat(order.currentCashTotal)}
                     </td>
                     <td className="pl-4">
-                      {new Date(order.CheckoutTime).toLocaleString()}
+                      {new Date(order.CheckoutTime).toLocaleString('id-ID', {
+                          timeZone: 'Asia/Bangkok',
+                        })}
                     </td>
                     <td className="pl-4">
                       {currencyFormat(order.newCashTotal)}

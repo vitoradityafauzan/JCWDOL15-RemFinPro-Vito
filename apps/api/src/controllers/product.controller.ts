@@ -4,51 +4,6 @@ import { Prisma } from '@prisma/client';
 import { log } from 'console';
 
 export class ProductController {
-  // async getProducts(req: Request, res: Response) {
-  //   try {
-  //     const { name, categoryIds, page = 1, pageSize = 10 } = req.query;
-  //     const skip = (Number(page) - 1) * Number(pageSize);
-  //     const take = Number(pageSize);
-
-  //     const whereFilter = {
-  //       AND: [{ productName: { contains: name as string } }],
-  //     } as any;
-
-  //     const modifiedCategoryIds = Array.isArray(categoryIds)
-  //       ? categoryIds
-  //       : categoryIds
-  //         ? [categoryIds]
-  //         : [];
-
-  //     if (modifiedCategoryIds && modifiedCategoryIds.length > 0) {
-  //       whereFilter.AND.push({
-  //         categoryId: { in: modifiedCategoryIds.map((id) => Number(id)) },
-  //       });
-  //     }
-
-  //     const [products, total] = await prisma.$transaction([
-  //       prisma.product.findMany({
-  //         where: whereFilter,
-  //         include: {
-  //           Category: true,
-  //         },
-  //         skip,
-  //         take,
-  //       }),
-  //       prisma.product.count({
-  //         where: whereFilter,
-  //       }),
-  //     ]);
-
-  //     res.status(200).json({ products, total });
-  //   } catch (err) {
-  //     res.status(400).send({
-  //       status: 'error',
-  //       msg: err,
-  //     });
-  //   }
-  // }
-
   async getProducts(req: Request, res: Response) {
     try {
       const { search } = req.query;
@@ -67,6 +22,8 @@ export class ProductController {
       if (category || category != undefined) {
         filter.categoryId = category;
       }
+
+      filter.isDeleted = false;
 
       const products = await prisma.product.findMany({
         where: filter,
@@ -154,7 +111,11 @@ export class ProductController {
 
   async getCategories(req: Request, res: Response) {
     try {
-      const categories = await prisma.category.findMany();
+      const categories = await prisma.category.findMany({
+        where: {
+          isDeleted: false,
+        },
+      });
 
       res.status(200).send({
         status: 'ok',
@@ -217,7 +178,6 @@ export class ProductController {
       const { productId, flowType, amount } = req.body;
 
       console.log('\n\n\nAPI Update Stock, ', productId, '\n\n\n');
-      
 
       const productStock = await prisma.stock.findFirst({
         where: {
@@ -490,157 +450,25 @@ export class ProductController {
       }
     }
   }
-}
 
-//
-//
-//
-
-/*
-
-async updateProduct(req: Request, res: Response) {
+  async createCategory(req: Request, res: Response) {
     try {
-      console.log('\n\n\nCreate Product API\n\n\n');
+      const { categoryName } = req.body;
 
-      const port = process.env.PORT;
+      if (!categoryName || typeof categoryName !== 'string')
+        throw 'Invalid Input!';
 
-      const { productName, price, categoryId, stockAmount } = req.body;
-
-      const oldProduct = await prisma.product.findUnique({
-        where: {
-          productName: productName,
-        },
-        include: {
-          Stock: {
-            select: {
-              totalStock: true,
-            },
-          },
-          Category: {
-            select: {
-              id: true,
-            },
-          },
+      const newCategory = await prisma.category.create({
+        data: {
+          categoryName: categoryName,
         },
       });
 
-      if (req.file) {
-        const link = `http://localhost:${port}/api/public/products/${req?.file?.filename}`;
-
-        if (stockAmount !== oldProduct?.Stock[0].totalStock) {
-          const result = await prisma.$transaction(async (prisma) => {
-            const createProduct = await prisma.product.create({
-              data: {
-                productName,
-                price: Number(price),
-                categoryId: Number(categoryId),
-                imageUrls: link,
-              },
-            });
-
-            const createStock = await prisma.stock.create({
-              data: {
-                productId: createProduct.id,
-                totalStock: Number(stockAmount),
-              },
-            });
-
-            const createStockHistory = await prisma.stockHistory.create({
-              data: {
-                stockId: Number(createStock.id),
-                adminId: req.user.id,
-                currentStock: Number(stockAmount),
-                flowType: 'IN',
-                itemAmount: Number(stockAmount),
-                newStock: Number(stockAmount),
-              },
-            });
-
-            return { createProduct, createStock, createStockHistory };
-          });
-
-          res.status(201).send({
-            status: 'ok',
-            msg: 'Product Successfully Created',
-            product: result.createProduct,
-          });
-        } else {
-          const result = await prisma.$transaction(async (prisma) => {
-            const createProduct = await prisma.product.create({
-              data: {
-                productName,
-                price: Number(price),
-                categoryId: Number(categoryId),
-                imageUrls: link,
-              },
-            });
-            return { createProduct };
-          });
-
-          res.status(201).send({
-            status: 'ok',
-            msg: 'Product Successfully Created',
-            product: result.createProduct,
-          });
-        }
-      } else {
-        if (stockAmount !== oldProduct?.Stock[0].totalStock) {
-          const result = await prisma.$transaction(async (prisma) => {
-            const createProduct = await prisma.product.create({
-              data: {
-                productName,
-                price: Number(price),
-                categoryId: Number(categoryId),
-              },
-            });
-
-            const createStock = await prisma.stock.create({
-              data: {
-                productId: createProduct.id,
-                totalStock: Number(stockAmount),
-              },
-            });
-
-            const createStockHistory = await prisma.stockHistory.create({
-              data: {
-                stockId: Number(createStock.id),
-                adminId: req.user.id,
-                currentStock: Number(stockAmount),
-                flowType: 'IN',
-                itemAmount: Number(stockAmount),
-                newStock: Number(stockAmount),
-              },
-            });
-
-            return { createProduct, createStock, createStockHistory };
-          });
-
-          res.status(201).send({
-            status: 'ok',
-            msg: 'Product Successfully Created',
-            product: result.createProduct,
-          });
-        } else {
-          const result = await prisma.$transaction(async (prisma) => {
-            const createProduct = await prisma.product.create({
-              data: {
-                productName,
-                price: Number(price),
-                categoryId: Number(categoryId),
-              },
-            });
-            return { createProduct };
-          });
-
-          res.status(201).send({
-            status: 'ok',
-            msg: 'Product Successfully Created',
-            product: result.createProduct,
-          });
-        }
-      }
-
-      //
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Category Created Successfully',
+        newCategory,
+      });
     } catch (error: any) {
       if (error.message) {
         res.status(400).send({
@@ -656,4 +484,42 @@ async updateProduct(req: Request, res: Response) {
     }
   }
 
-*/
+  async deleteCategory(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const deletedDate = new Date().toISOString();
+
+      await prisma.category.update({
+        data: {
+          isDeleted: true,
+          deletedAt: deletedDate,
+        },
+        where: {
+          id: Number(id),
+        },
+      });
+
+      res.status(201).send({
+        status: 'ok',
+        msg: 'Category Deleted!',
+      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
+}
+
+//
+//
+//

@@ -1,4 +1,5 @@
 import {
+  ICreateCategory,
   ICreateProduct,
   IProductGet,
   ITransactionCreate,
@@ -13,6 +14,9 @@ const base_url =
 export const productList = async (search: string, category: string) => {
   const res = await fetch(
     `${base_url}product/all?search=${search}&category=${category}`,
+    {
+      method: 'GET',
+    },
   );
 
   const result = await res.json();
@@ -29,21 +33,13 @@ export const productList = async (search: string, category: string) => {
 };
 
 export const categoryList = async () => {
-  const res = await fetch(`${base_url}product/categories`);
+  const res = await fetch(`${base_url}product/category/all`, {
+    method: 'GET',
+  });
 
   const result = await res.json();
 
   return { result };
-
-  // if (result.status != 'ok') {
-  //   console.log('fetching failed');
-
-  //   throw new Error(result.msg);
-  // } else {
-  //   console.log('fetching success');
-
-  //   return { status: result.status, categories: [...result.categories] };
-  // }
 };
 
 export const createProduct = async (data: any) => {
@@ -110,8 +106,8 @@ export const updateStock = async (data: IUpdateStock, productId: number) => {
   const token = getCookie('cashewier-token');
 
   if (token) {
-    console.log('\n\nLIB UpdateStock,', productId,' \n\n');
-    
+    console.log('\n\nLIB UpdateStock,', productId, ' \n\n');
+
     const res = await fetch(`${base_url}product/stok/update-stock`, {
       method: 'PUT',
       headers: {
@@ -142,4 +138,46 @@ export const productStokHistory = async (stokId: number) => {
   const result = await res.json();
 
   return { result };
+};
+
+export const createCategory = async (data: ICreateCategory) => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}product/category/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};
+
+export const deleteCategory = async (id: number) => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}product/category/delete/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    console.log('\n\n\nNO TOKEN\n\n\n');
+    return { result: { status: 'error', msg: 'no token' } };
+  }
 };

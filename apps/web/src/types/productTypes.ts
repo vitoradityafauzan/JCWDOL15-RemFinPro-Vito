@@ -81,3 +81,7 @@ export interface IUpdateStock {
   flowType: string;
   amount: number;
 }
+
+export interface ICreateCategory {
+  categoryName: string;
+}

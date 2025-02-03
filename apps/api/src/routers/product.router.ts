@@ -15,10 +15,18 @@ export class ProductRouter {
   }
 
   private initializeRoutes(): void {
-    this.router.get('/all', this.productController.getProducts);
-    this.router.get('/specific/:id', this.productController.getProductById);
-    this.router.get('/categories', this.productController.getCategories);
-    this.router.get('/category/:id', this.productController.getCategoryId);
+    this.router.get('/category/all', this.productController.getCategories);
+    this.router.get('/category/specific/:id', this.productController.getCategoryId);
+    this.router.post(
+      '/category/create',
+      verifyToken,
+      this.productController.createCategory,
+    );
+    this.router.delete(
+      '/category/delete/:id',
+      verifyToken,
+      this.productController.deleteCategory,
+    );
     this.router.get(
       '/stok/stok-history/:id',
       this.productController.getStockHistory,
@@ -28,6 +36,8 @@ export class ProductRouter {
       verifyToken,
       this.productController.updateStock,
     );
+    this.router.get('/all', this.productController.getProducts);
+    this.router.get('/specific/:id', this.productController.getProductById);
     this.router.post(
       '/create',
       uploader('product-', '/products').single('imageUrl'),

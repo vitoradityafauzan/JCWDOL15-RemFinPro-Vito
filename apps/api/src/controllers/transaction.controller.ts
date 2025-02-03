@@ -347,15 +347,15 @@ export class TransactionController {
         { date: string; totalAmount: number; totalOrders: number }[]
       >(`
         SELECT
-          DATE(createdAt) as date,
+          Date(CONVERT_TZ(createdAt, '+00:00', '+07:00')) As date,
           SUM(totalPrice) as totalAmount,
           COUNT(id) as totalOrders
         FROM
           \`order\`
         GROUP BY
-          DATE(createdAt)
+          date
         ORDER BY
-          DATE(createdAt) ${orderBy};
+          date ${orderBy};
       `);
 
       // Convert BigInt values to strings
@@ -410,7 +410,7 @@ export class TransactionController {
       const itemsSold = await prisma.$queryRawUnsafe<
         { productId: number; totalItem: number; date: string }[]
       >(`
-       Select productId, Count(*) as totalItem, DATE(createdAt) as date From orderitem Group By productId, DATE(createdAt);
+       Select productId, Count(*) as totalItem, Date(CONVERT_TZ(createdAt, '+00:00', '+07:00')) As date From orderitem Group By productId, date;
       `);
 
       const formattedTransactions = itemsSold.map((transaction: any) => ({
