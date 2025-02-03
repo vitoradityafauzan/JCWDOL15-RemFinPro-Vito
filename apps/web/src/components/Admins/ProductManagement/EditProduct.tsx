@@ -6,19 +6,11 @@ import {
   confirmationWithoutSuccessMessageSwal,
   toastSwal,
 } from '@/app/utils/swalHelper';
-import { ICategories, IProductGet, IUpdateProduct } from '@/types/productTypes';
+import { EditProductProps, ICategories, IProductGet, IUpdateProduct } from '@/types/productTypes';
 import { categoryList, updateProduct } from '@/lib/product';
 import { editProductSchema } from '@/app/utils/formSchema';
 import Image from 'next/image';
 
-interface EditProductProps {
-  productId: number;
-  imageUrl: string | undefined;
-  productName: string;
-  price: number;
-  categoryId: number;
-  fetchData: () => Promise<void>;
-}
 
 const EditProduct: React.FC<EditProductProps> = ({
   productId,

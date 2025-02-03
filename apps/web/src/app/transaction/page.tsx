@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { currencyFormat } from '../utils/currencyFormat';
 import { useRouter } from 'next/navigation';
-import { finalizedTransaction, getActiveTransaction } from '@/lib/transaction';
+import {
+  cancelTransaction,
+  finalizedTransaction,
+  getActiveTransaction,
+} from '@/lib/transaction';
 import {
   confirmationSwal,
   confirmationWithoutSuccessMessageSwal,
@@ -136,12 +140,38 @@ export default function Transaction() {
     }
   };
 
+  const handleCancelTransaction = async () => {
+    try {
+      const confirm = await confirmationWithoutSuccessMessageSwal(
+        `Your'e About To Finalize This Changes`,
+        'Are you sure?',
+      );
+
+      if (confirm) {
+        const { result } = await cancelTransaction();
+
+        if (result.status !== 'ok') throw `${result.msg}`;
+
+        router.push('/');
+
+        toastSwal('success', `${result.msg}`);
+      }
+    } catch (error: any) {
+      toastSwal('error', `${error}`);
+    }
+  };
+
   return (
     <div className="flex flex-col border-0 border-red-600 w-full h-full mx-auto p-7  bg-zinc-50 items-center gap-11">
       <h1 className="text-center text-4xl font-bold tracking-wide">
         Checkout Order
       </h1>
-      <button className="btn btn-outline btn-error">cancel transaction</button>
+      <button
+        className="btn btn-outline btn-error"
+        onClick={handleCancelTransaction}
+      >
+        cancel transaction
+      </button>
       <div className="flex flex-col gap-14 w-5/6 border-t-8 border-accent rounded-xl py-12 items-center">
         {orderItems &&
           orderItems?.map((oi) => (
@@ -150,7 +180,7 @@ export default function Transaction() {
               key={oi.id}
             >
               <div className="flex flex-col gap-4 text-lg">
-                <h1 className='font-bold'>{oi.Product.productName}</h1>
+                <h1 className="font-bold">{oi.Product.productName}</h1>
                 <h2>x{oi.quantity}</h2>
                 <h2>{currencyFormat(oi.totalPrice)}</h2>
               </div>

@@ -196,3 +196,22 @@ export const transactionByCashier = async () => {
     return { result: { status: 'error', msg: 'no token' } };
   }
 };
+
+export const cancelTransaction = async () => {
+  const token = getCookie('cashewier-token');
+
+  if (token) {
+    const res = await fetch(`${base_url}transaction/cancel-transaction`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await res.json();
+
+    return { result };
+  } else {
+    return { result: { status: 'error', msg: 'no token' } };
+  }
+};

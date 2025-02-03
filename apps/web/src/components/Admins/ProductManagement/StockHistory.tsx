@@ -6,12 +6,12 @@ import {
   simpleSwal,
   toastSwal,
 } from '@/app/utils/swalHelper';
-import { IStokHistory, IUpdateProduct } from '@/types/productTypes';
+import {
+  IStokHistory,
+  IUpdateProduct,
+  StockHistoryProps,
+} from '@/types/productTypes';
 import { productStokHistory } from '@/lib/product';
-
-interface StockHistoryProps {
-  productId: number;
-}
 
 const StockHistory: React.FC<StockHistoryProps> = ({ productId }) => {
   const [stockHistory, setStokHistory] = useState<IStokHistory[]>([]);
@@ -60,7 +60,10 @@ const StockHistory: React.FC<StockHistoryProps> = ({ productId }) => {
 
       {/*  */}
 
-      <dialog id={`stock-history-${productId}`} className="modal mx-auto items-center justify-center">
+      <dialog
+        id={`stock-history-${productId}`}
+        className="modal mx-auto items-center justify-center"
+      >
         <div className="modal-box">
           <form method="dialog">
             {/* if there is a button in form, it will close the modal */}

@@ -25,7 +25,14 @@ export default function Adminss() {
         >
           Products
         </button>
-        <button className="btn btn-outline btn-accent">Sales History</button>
+        <button
+          className="btn btn-outline btn-accent"
+          onClick={() => {
+            router.push('/adminss/sales-history');
+          }}
+        >
+          Sales History
+        </button>
       </div>
     </div>
   );

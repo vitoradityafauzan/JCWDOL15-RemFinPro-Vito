@@ -153,7 +153,8 @@ export class TransactionController {
 
   async finalizedTransaction(req: Request, res: Response) {
     try {
-      const { orderId, payType, amount, cashChange, debitCard, updatedAt } = req.body;
+      const { orderId, payType, amount, cashChange, debitCard, updatedAt } =
+        req.body;
 
       const orderItems = await prisma.orderItem.findMany({
         where: {
@@ -472,9 +473,9 @@ export class TransactionController {
         // const cashDifference =
         //   shift.newCashTotal - (shift.currentCashTotal + totalOrder);
         const totalCashChange = totalOrderAmount._sum.cashChange || 0;
-      const cashDifference =
-        shift.newCashTotal - (shift.currentCashTotal + totalOrder - totalCashChange);
-
+        const cashDifference =
+          shift.newCashTotal -
+          (shift.currentCashTotal + totalOrder - totalCashChange);
 
         if (cashDifference !== 0) {
           results.push({
@@ -631,381 +632,126 @@ export class TransactionController {
     }
   }
 
-  //
-  //
-  //
-
-  // Find abnormalities where currentCashTotal does not match newCashTotal of the last shift
-  async findCashRegisterAbnormalities(req: Request, res: Response) {
-    try {
-      const abnormalities = await prisma.cashRegisterHistory.findMany({
-        where: {
-          isDeleted: false,
-        },
-        include: {
-          User: true,
-        },
-        orderBy: {
-          CheckInTime: 'asc',
-        },
-      });
-
-      const results = [];
-
-      for (let i = 1; i < abnormalities.length; i++) {
-        const currentShift = abnormalities[i];
-        const previousShift = abnormalities[i - 1];
-
-        if (
-          currentShift.cashierId === previousShift.cashierId &&
-          currentShift.currentCashTotal !== previousShift.newCashTotal
-        ) {
-          results.push({
-            shiftId: currentShift.id,
-            cashier: currentShift.User.username,
-            previousNewCashTotal: previousShift.newCashTotal,
-            currentCashTotal: currentShift.currentCashTotal,
-            difference:
-              currentShift.currentCashTotal - previousShift.newCashTotal,
-          });
-        }
-      }
-
-      res.status(200).send({
-        status: 'ok',
-        results,
-      });
-    } catch (error: any) {
-      res.status(400).send({
-        status: 'error',
-        msg: error.message || error,
-      });
-    }
-  }
-
-  async getTotalTransactionsPerDay(req: Request, res: Response) {
-    try {
-      const transactions = await prisma.order.groupBy({
-        by: ['createdAt'],
-        _sum: {
-          totalPrice: true,
-        },
-        _count: {
-          id: true,
-        },
-        orderBy: {
-          createdAt: 'asc',
-        },
-      });
-
-      res.status(200).send({
-        status: 'ok',
-        transactions,
-      });
-    } catch (error: any) {
-      res.status(400).send({
-        status: 'error',
-        msg: error.message || error,
-      });
-    }
-  }
-
-  // async finalizedTransaction(req: Request, res: Response) {
+  // async getTotalTransactionsPerDay(req: Request, res: Response) {
   //   try {
-  //     const { orderId, payType, amount, debitCard, updatedAt } = req.body;
-
-  //     if (payType === 'CASH') {
-  //       const result = await prisma.$transaction(async (prisma) => {
-  //         const updateOrder = await prisma.order.update({
-  //           where: {
-  //             id: Number(orderId),
-  //           },
-  //           data: {
-  //             status: 'PAID',
-  //             totalPaid: amount,
-  //             payType: 'CASH',
-  //             updatedAt,
-  //           },
-  //         });
-
-  //         return { updateOrder };
-  //       });
-
-  //       res.status(201).json({
-  //         status: 'ok',
-  //         msg: 'Transaction Finalized, updating stock...',
-  //         updatedOrder: result.updateOrder,
-  //       });
-  //     } else {
-  //       const result = await prisma.$transaction(async (prisma) => {
-  //         const updateOrder = await prisma.order.update({
-  //           where: {
-  //             id: Number(orderId),
-  //           },
-  //           data: {
-  //             status: 'PAID',
-  //             totalPaid: amount,
-  //             debitCard: debitCard,
-  //             payType: 'DEBIT',
-  //             updatedAt,
-  //           },
-  //         });
-
-  //         return { updateOrder };
-  //       });
-
-  //       res.status(201).json({
-  //         status: 'ok',
-  //         msg: 'Transaction Finalized, updating stock...',
-  //         updatedOrder: result.updateOrder,
-  //       });
-  //     }
-  //   } catch (error: any) {
-  //     if (error.message) {
-  //       res.status(400).send({
-  //         status: 'error transaction',
-  //         msg: error.message,
-  //       });
-  //     } else {
-  //       res.status(400).send({
-  //         status: 'error transaction',
-  //         msg: error,
-  //       });
-  //     }
-  //   }
-  // }
-
-  // async finalizedTransaction(req: Request, res: Response) {
-  //   try {
-  //     const { orderId, payType, amount, debitCard, updatedAt } = req.body;
-
-  //     const orderItems = await prisma.orderItem.findMany({
-  //       where: {
-  //         orderId: Number(orderId),
+  //     const transactions = await prisma.order.groupBy({
+  //       by: ['createdAt'],
+  //       _sum: {
+  //         totalPrice: true,
+  //       },
+  //       _count: {
+  //         id: true,
+  //       },
+  //       orderBy: {
+  //         createdAt: 'asc',
   //       },
   //     });
 
-  //     if (payType === 'CASH') {
-  //       const result = await prisma.$transaction(async (prisma) => {
-  //         const updateOrder = await prisma.order.update({
-  //           where: {
-  //             id: Number(orderId),
-  //           },
-  //           data: {
-  //             status: 'PAID',
-  //             totalPaid: amount,
-  //             payType: 'CASH',
-  //             updatedAt,
-  //           },
-  //         });
-
-  //         // const orderItems = await prisma.orderItem.findMany({
-  //         //   where: {
-  //         //     orderId: Number(orderId),
-  //         //   },
-  //         // });
-
-  //         console.log('\n\n\n\nORDER ITEMS\n\n');
-  //         console.log(orderItems);
-  //         console.log('\n\n\n\n');
-
-  //         for (const item of orderItems) {
-  //           const stock = await prisma.stock.findFirst({
-  //             where: {
-  //               productId: Number(item.productId), // Use the correct field to find the stock record
-  //             },
-  //           });
-
-  //           if (!stock) {
-  //             throw new Error(
-  //               `Stock not found for productId: ${item.productId}`,
-  //             );
-  //           }
-
-  //           // Calculate the new totalStock
-  //           const newTotalStock = stock.totalStock - item.quantity;
-
-  //           await prisma.stock.updateMany({
-  //             where: {
-  //               id: stock.id,
-  //             },
-  //             data: {
-  //               totalStock: newTotalStock,
-  //             },
-  //           });
-
-  //           // await prisma.stock.updateMany({
-  //           //   where: {
-  //           //     productId: item.productId,
-  //           //   },
-  //           //   data: {
-  //           //     totalStock: stock.totalStock - item.quantity,
-  //           //   },
-  //           // });
-
-  //           await prisma.stockHistory.create({
-  //             data: {
-  //               stockId: stock.id,
-  //               adminId: req.user?.id,
-  //               currentStock: stock.totalStock,
-  //               flowType: 'OUT',
-  //               itemAmount: item.quantity,
-  //               newStock: newTotalStock,
-  //             },
-  //           });
-
-  //           // if (stock) {
-  //           //   await prisma.stock.updateMany({
-  //           //     where: {
-  //           //       productId: item.productId,
-  //           //     },
-  //           //     data: {
-  //           //       totalStock: stock[0].totalStock - item.quantity,
-  //           //     },
-  //           //   });
-
-  //           //   await prisma.stockHistory.create({
-  //           //     data: {
-  //           //       stockId: item.orderId,
-  //           //       adminId: req.user?.id,
-  //           //       currentStock: stock[0].totalStock,
-  //           //       flowType: 'OUT',
-  //           //       itemAmount: item.quantity,
-  //           //       newStock: stock[0].totalStock - item.quantity,
-  //           //     },
-  //           //   });
-  //           // } else {
-  //           //   throw new Error('Stock not found');
-  //           // }
-  //         }
-
-  //         // const updatedStock = Promise.all(
-  //         //   orderItems.map(async (item) => {
-  //         //     console.log('\n\nProduct ID, ', item.productId, '\n\n\n');
-  //         //     const stock = await prisma.stock.findMany({
-  //         //       where: {
-  //         //         productId: Number(item.productId), // Use the correct field to find the stock record
-  //         //       },
-  //         //     });
-  //         //     // const stock: any = await prisma.$queryRawUnsafe(
-  //         //     //   `Select * From stock Where product_id = ${item.productId}`,
-  //         //     // );
-  //         //     if (stock) {
-  //         //       await prisma.stock.updateMany({
-  //         //         where: {
-  //         //           productId: item.productId,
-  //         //         },
-  //         //         data: {
-  //         //           totalStock: stock[0].totalStock - item.quantity,
-  //         //         },
-  //         //       });
-
-  //         //       await prisma.stockHistory.create({
-  //         //         data: {
-  //         //           stockId: item.orderId,
-  //         //           adminId: req.user?.id,
-  //         //           currentStock: stock[0].totalStock,
-  //         //           flowType: 'OUT',
-  //         //           itemAmount: item.quantity,
-  //         //           newStock: stock[0].totalStock - item.quantity,
-  //         //         },
-  //         //       });
-  //         //     } else {
-  //         //       throw new Error('Stock not found');
-  //         //     }
-  //         //   }),
-  //         // );
-
-  //         // return { updateOrder, updatedStock };
-  //         return { updateOrder };
-  //       });
-
-  //       res.status(201).json({
-  //         status: 'ok',
-  //         msg: 'Transaction Successfull!',
-  //         updatedOrder: result.updateOrder,
-  //         // updatedStock: result.updatedStock,
-  //       });
-  //     } else {
-  //       const result = await prisma.$transaction(async (prisma) => {
-  //         const updateOrder = await prisma.order.update({
-  //           where: {
-  //             id: Number(orderId),
-  //           },
-  //           data: {
-  //             status: 'PAID',
-  //             totalPaid: amount,
-  //             debitCard: debitCard,
-  //             payType: 'DEBIT',
-  //             updatedAt,
-  //           },
-  //         });
-
-  //         // const orderItems = await prisma.orderItem.findMany({
-  //         //   where: {
-  //         //     orderId: Number(orderId),
-  //         //   },
-  //         // });
-
-  //         const updatedStock = Promise.all(
-  //           orderItems.map(async (item) => {
-  //             // const stock = await prisma.stock.findFirst({
-  //             //   where: {
-  //             //     productId: Number(item.productId),
-  //             //   },
-  //             // });
-  //             const stock: any = await prisma.$queryRawUnsafe(
-  //               `Select * From stock Where product_id = ${item.productId}`,
-  //             );
-
-  //             if (stock) {
-  //               await prisma.stock.updateMany({
-  //                 where: {
-  //                   productId: item.productId,
-  //                 },
-  //                 data: {
-  //                   totalStock: stock.totalStock - item.quantity,
-  //                 },
-  //               });
-
-  //               await prisma.stockHistory.create({
-  //                 data: {
-  //                   stockId: item.orderId,
-  //                   adminId: req.user?.id,
-  //                   currentStock: stock.totalStock,
-  //                   flowType: 'OUT',
-  //                   itemAmount: item.quantity,
-  //                   newStock: stock.totalStock - item.quantity,
-  //                 },
-  //               });
-  //             } else {
-  //               throw new Error('Stock not found');
-  //             }
-  //           }),
-  //         );
-
-  //         return { updateOrder, updatedStock };
-  //       });
-
-  //       res.status(201).json({
-  //         status: 'ok',
-  //         msg: 'Transaction Successfull!',
-  //         updatedOrder: result.updateOrder,
-  //         updatedStock: result.updatedStock,
-  //       });
-  //     }
+  //     res.status(200).send({
+  //       status: 'ok',
+  //       transactions,
+  //     });
   //   } catch (error: any) {
-  //     if (error.message) {
-  //       res.status(400).send({
-  //         status: 'error transaction',
-  //         msg: error.message,
-  //       });
-  //     } else {
-  //       res.status(400).send({
-  //         status: 'error transaction',
-  //         msg: error,
-  //       });
-  //     }
+  //     res.status(400).send({
+  //       status: 'error',
+  //       msg: error.message || error,
+  //     });
   //   }
   // }
+
+  // Find abnormalities where currentCashTotal does not match newCashTotal of the last shift
+  // async findCashRegisterAbnormalities(req: Request, res: Response) {
+  //   try {
+  //     const abnormalities = await prisma.cashRegisterHistory.findMany({
+  //       where: {
+  //         isDeleted: false,
+  //       },
+  //       include: {
+  //         User: true,
+  //       },
+  //       orderBy: {
+  //         CheckInTime: 'asc',
+  //       },
+  //     });
+
+  //     const results = [];
+
+  //     for (let i = 1; i < abnormalities.length; i++) {
+  //       const currentShift = abnormalities[i];
+  //       const previousShift = abnormalities[i - 1];
+
+  //       if (
+  //         currentShift.cashierId === previousShift.cashierId &&
+  //         currentShift.currentCashTotal !== previousShift.newCashTotal
+  //       ) {
+  //         results.push({
+  //           shiftId: currentShift.id,
+  //           cashier: currentShift.User.username,
+  //           previousNewCashTotal: previousShift.newCashTotal,
+  //           currentCashTotal: currentShift.currentCashTotal,
+  //           difference:
+  //             currentShift.currentCashTotal - previousShift.newCashTotal,
+  //         });
+  //       }
+  //     }
+
+  //     res.status(200).send({
+  //       status: 'ok',
+  //       results,
+  //     });
+  //   } catch (error: any) {
+  //     res.status(400).send({
+  //       status: 'error',
+  //       msg: error.message || error,
+  //     });
+  //   }
+  // }
+
+  async cancelTransaction(req: Request, res: Response) {
+    try {
+      const transaction = await prisma.order.findFirst({
+        where: {
+          cashierId: req.user.id,
+          status: 'PENDING',
+        },
+      });
+
+      if (!transaction) throw 'Transaction doesnt exist';
+
+      // const transactionItems = await prisma.orderItem.findMany({
+      //   where: {
+      //     orderId: transaction.id,
+      //   },
+      // });
+
+      await prisma.orderItem.deleteMany({
+        where: {
+          orderId: transaction.id,
+        },
+      });
+
+      await prisma.order.delete({
+        where: {
+          id: transaction.id,
+        },
+      });
+
+      res.status(200).send({
+        status: 'ok',
+        msg: 'Transaction Successfully Cancelled',
+      });
+    } catch (error: any) {
+      if (error.message) {
+        res.status(400).send({
+          status: 'error products',
+          msg: error.message,
+        });
+      } else {
+        res.status(400).send({
+          status: 'error products',
+          msg: error,
+        });
+      }
+    }
+  }
 }

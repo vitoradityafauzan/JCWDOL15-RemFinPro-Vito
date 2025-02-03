@@ -7,16 +7,12 @@ import {
   simpleSwal,
   toastSwal,
 } from '@/app/utils/swalHelper';
-import { ICategories, ICreateProduct } from '@/types/productTypes';
+import { AddComponentProps, ICategories, ICreateProduct } from '@/types/productTypes';
 import { categoryList, createProduct } from '@/lib/product';
 import { addProductSchema } from '@/app/utils/formSchema';
 import Image from 'next/image';
 
-interface AddProductProps {
-  fetchData: () => Promise<void>;
-}
-
-const AddProduct: React.FC<AddProductProps> = ({ fetchData }) => {
+const AddProduct: React.FC<AddComponentProps> = ({ fetchData }) => {
   const [categories, setCategories] = useState<ICategories[]>([]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 

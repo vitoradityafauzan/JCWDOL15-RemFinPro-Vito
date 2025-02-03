@@ -19,3 +19,8 @@ export interface IAccount {
   isDeleted: boolean;
   deletedAt?: string;
 }
+
+export interface AccountUpdateProps {
+  cashier: IAccount;
+  fetchData: () => Promise<void>;
+}

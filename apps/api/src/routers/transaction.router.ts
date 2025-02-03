@@ -43,10 +43,10 @@ export class TransactionRouter {
       '/sales-history',
       this.transationController.getSalesHistory,
     );
-    this.router.get(
-      '/total-transactions-per-day',
-      this.transationController.getTotalTransactionsPerDay,
-    );
+    // this.router.get(
+    //   '/total-transactions-per-day',
+    //   this.transationController.getTotalTransactionsPerDay,
+    // );
     this.router.get(
       '/total-items-sold-per-day',
       this.transationController.getTotalItemsSoldPerDay,
@@ -65,10 +65,16 @@ export class TransactionRouter {
       verifyToken,
       this.transationController.getOrderByCashier,
     );
-    this.router.get(
-      '/cash-register-abnormalities',
-      this.transationController.findCashRegisterAbnormalities,
+    this.router.delete(
+      '/cancel-transaction',
+      verifyToken,
+      this.transationController.cancelTransaction,
     );
+
+    // this.router.get(
+    //   '/cash-register-abnormalities',
+    //   this.transationController.findCashRegisterAbnormalities,
+    // );
   }
   getRouter(): Router {
     return this.router;

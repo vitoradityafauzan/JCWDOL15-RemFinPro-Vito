@@ -30,11 +30,6 @@ export class ProductController {
         include: {
           Category: true,
           Stock: true,
-          // Stock: {
-          //   select: {
-          //     totalStock: true,
-          //   },
-          // },
         },
       });
 
@@ -78,22 +73,6 @@ export class ProductController {
         msg: 'Product detail fetched',
         product,
       });
-
-      // const currentStock = await prisma.stock.findFirst({
-      //   select: {
-      //     totalStock: true,
-      //   },
-      //   where: {
-      //     productId: product.id,
-      //   },
-      // });
-
-      // res.status(200).send({
-      //   status: 'ok',
-      //   msg: 'Product detail fetched',
-      //   product,
-      //   stock: currentStock?.totalStock,
-      // });
     } catch (error: any) {
       if (error.message) {
         res.status(400).send({
@@ -164,14 +143,6 @@ export class ProductController {
       }
     }
   }
-
-  /*
-  id: number,
-    name: string,
-    price: number,
-    amount: number,
-  
-  */
 
   async updateStock(req: Request, res: Response) {
     try {
@@ -518,8 +489,6 @@ export class ProductController {
       }
     }
   }
-}
 
-//
-//
-//
+  
+}

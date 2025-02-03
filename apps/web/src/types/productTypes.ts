@@ -85,3 +85,20 @@ export interface IUpdateStock {
 export interface ICreateCategory {
   categoryName: string;
 }
+
+export interface StockHistoryProps {
+  productId: number;
+}
+
+export interface AddComponentProps {
+  fetchData: () => Promise<void>;
+}
+
+export interface EditProductProps {
+  productId: number;
+  imageUrl: string | undefined;
+  productName: string;
+  price: number;
+  categoryId: number;
+  fetchData: () => Promise<void>;
+}
