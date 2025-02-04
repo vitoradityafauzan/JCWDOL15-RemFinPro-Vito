@@ -10,6 +10,7 @@ import AddProduct from '@/components/Admins/ProductManagement/AddProduct';
 import EditProduct from '@/components/Admins/ProductManagement/EditProduct';
 import StockHistory from '@/components/Admins/ProductManagement/StockHistory';
 import StockUpdate from '@/components/Admins/ProductManagement/StockEdit';
+import { currencyFormat } from '@/app/utils/currencyFormat';
 
 const ProductManagement: React.FC = () => {
   const [products, setProducts] = useState<IProductGet[]>([]);
@@ -94,7 +95,7 @@ const ProductManagement: React.FC = () => {
                 <td>{product.id}</td>
                 <td>{product.productName}</td>
                 <td>{product.Category.categoryName}</td>
-                <td>{product.price}</td>
+                <td>{currencyFormat(product.price)}</td>
                 <td>{product.Stock ? product.Stock[0].totalStock : 'N/A'}</td>
                 <td>
                   <div className="dropdown dropdown-bottom dropdown-end">

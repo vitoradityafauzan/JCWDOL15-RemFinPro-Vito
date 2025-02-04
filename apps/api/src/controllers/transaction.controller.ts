@@ -459,6 +459,7 @@ export class TransactionController {
           },
           where: {
             cashierId: shift.cashierId,
+            payType: 'CASH',
             createdAt: {
               gte: shift.CheckInTime,
               lte: shift.CheckoutTime,
