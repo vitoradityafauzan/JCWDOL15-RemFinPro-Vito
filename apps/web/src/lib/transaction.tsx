@@ -4,11 +4,11 @@ import { getCookie } from 'cookies-next';
 const base_url =
   process.env.NEXT_PUBLIC_BASE_API_URL || 'http://localhost:8000/api/';
 
-export const transactionAll = async () => {
+export const transactionAll = async (sortOrder: string) => {
   const token = getCookie('cashewier-token');
 
   if (token) {
-    const res = await fetch(`${base_url}transaction/all`, {
+    const res = await fetch(`${base_url}transaction/all?sort=${sortOrder}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -88,7 +88,6 @@ export const transactionShiftDetail = async (shiftId: number) => {
   return { result };
 };
 
-// export const createTransaction = async (data: ITransactionCreate) => {
 export const createTransaction = async (
   cashierId: number,
   cart: ICartItems[] | null,
@@ -178,7 +177,7 @@ export const finalizedTransaction = async (
 };
 //orderId, payType, amount, debitCard
 
-export const transactionByCashier = async () => {
+export const transactionHistoryByCashier = async () => {
   const token = getCookie('cashewier-token');
 
   if (token) {

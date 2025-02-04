@@ -10,6 +10,7 @@ interface ICart {
 }
 
 export class TransactionController {
+  // Fetch active transaction orders
   async getActiveTransaction(req: Request, res: Response) {
     try {
       const order = await prisma.order.findFirst({
@@ -51,6 +52,7 @@ export class TransactionController {
     }
   }
 
+  // Fetch order items detail
   async getOrderItems(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -84,6 +86,7 @@ export class TransactionController {
     }
   }
 
+  // Create new transaction
   async createTransaction(req: Request, res: Response) {
     try {
       const cashierId: number = req.body.cashierId;
@@ -151,6 +154,7 @@ export class TransactionController {
     }
   }
 
+  // Finishing transaction with payment
   async finalizedTransaction(req: Request, res: Response) {
     try {
       const { orderId, payType, amount, cashChange, debitCard, updatedAt } =
@@ -299,9 +303,17 @@ export class TransactionController {
     }
   }
 
+  // Fetch all transactions
   async getAllTransactions(req: Request, res: Response) {
     try {
-      const orders = await prisma.order.findMany();
+      const { sort } = req.query;
+      const orderBy = sort == 'desc' ? 'desc' : 'asc';
+
+      const orders = await prisma.order.findMany({
+        orderBy: {
+          createdAt: orderBy,
+        },
+      });
 
       res.status(200).send({
         status: 'ok',
@@ -327,36 +339,21 @@ export class TransactionController {
   async getSalesHistory(req: Request, res: Response) {
     try {
       const { sort } = req.query;
-      const orderBy = sort === 'desc' ? 'desc' : 'asc';
-
-      // const salesHistory = await prisma.order.findMany({
-      //   include: {
-      //     orderItems: true,
-      //     User: true,
-      //   },
-      //   orderBy: {
-      //     createdAt: orderBy,
-      //   },
-      // });
-
-      // res.status(200).send({
-      //   status: 'ok',
-      //   salesHistory,
-      // });
+      const orderBy = sort == 'desc' ? 'desc' : 'asc';
 
       const transactions = await prisma.$queryRawUnsafe<
         { date: string; totalAmount: number; totalOrders: number }[]
       >(`
         SELECT
-          Date(CONVERT_TZ(createdAt, '+00:00', '+07:00')) As date,
+          Date(CONVERT_TZ(createdAt, '+00:00', '+07:00')) As \`date\`,
           SUM(totalPrice) as totalAmount,
           COUNT(id) as totalOrders
         FROM
           \`order\`
         GROUP BY
-          date
+          \`date\`
         ORDER BY
-          date ${orderBy};
+          \`date\` ${orderBy};
       `);
 
       // Convert BigInt values to strings
@@ -508,6 +505,7 @@ export class TransactionController {
     }
   }
 
+  // Fetch shift data
   async getShiftAll(req: Request, res: Response) {
     try {
       const shifts = await prisma.cashRegisterHistory.findMany({
@@ -610,6 +608,13 @@ export class TransactionController {
         where: {
           cashierId: req.user.id,
         },
+        include: {
+          orderItems: {
+            include: {
+              Product: true,
+            },
+          },
+        },
       });
 
       res.status(200).send({
@@ -632,81 +637,6 @@ export class TransactionController {
     }
   }
 
-  // async getTotalTransactionsPerDay(req: Request, res: Response) {
-  //   try {
-  //     const transactions = await prisma.order.groupBy({
-  //       by: ['createdAt'],
-  //       _sum: {
-  //         totalPrice: true,
-  //       },
-  //       _count: {
-  //         id: true,
-  //       },
-  //       orderBy: {
-  //         createdAt: 'asc',
-  //       },
-  //     });
-
-  //     res.status(200).send({
-  //       status: 'ok',
-  //       transactions,
-  //     });
-  //   } catch (error: any) {
-  //     res.status(400).send({
-  //       status: 'error',
-  //       msg: error.message || error,
-  //     });
-  //   }
-  // }
-
-  // Find abnormalities where currentCashTotal does not match newCashTotal of the last shift
-  // async findCashRegisterAbnormalities(req: Request, res: Response) {
-  //   try {
-  //     const abnormalities = await prisma.cashRegisterHistory.findMany({
-  //       where: {
-  //         isDeleted: false,
-  //       },
-  //       include: {
-  //         User: true,
-  //       },
-  //       orderBy: {
-  //         CheckInTime: 'asc',
-  //       },
-  //     });
-
-  //     const results = [];
-
-  //     for (let i = 1; i < abnormalities.length; i++) {
-  //       const currentShift = abnormalities[i];
-  //       const previousShift = abnormalities[i - 1];
-
-  //       if (
-  //         currentShift.cashierId === previousShift.cashierId &&
-  //         currentShift.currentCashTotal !== previousShift.newCashTotal
-  //       ) {
-  //         results.push({
-  //           shiftId: currentShift.id,
-  //           cashier: currentShift.User.username,
-  //           previousNewCashTotal: previousShift.newCashTotal,
-  //           currentCashTotal: currentShift.currentCashTotal,
-  //           difference:
-  //             currentShift.currentCashTotal - previousShift.newCashTotal,
-  //         });
-  //       }
-  //     }
-
-  //     res.status(200).send({
-  //       status: 'ok',
-  //       results,
-  //     });
-  //   } catch (error: any) {
-  //     res.status(400).send({
-  //       status: 'error',
-  //       msg: error.message || error,
-  //     });
-  //   }
-  // }
-
   async cancelTransaction(req: Request, res: Response) {
     try {
       const transaction = await prisma.order.findFirst({
@@ -717,12 +647,6 @@ export class TransactionController {
       });
 
       if (!transaction) throw 'Transaction doesnt exist';
-
-      // const transactionItems = await prisma.orderItem.findMany({
-      //   where: {
-      //     orderId: transaction.id,
-      //   },
-      // });
 
       await prisma.orderItem.deleteMany({
         where: {

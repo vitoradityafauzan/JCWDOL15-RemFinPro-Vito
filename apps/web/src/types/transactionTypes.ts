@@ -9,7 +9,7 @@ export interface IOrderItems {
   updatedAt: string;
   isDeleted: boolean;
   deletedAt?: string;
-  Product: {
+  Product?: {
     id: number;
     productName: string;
     price: number;

@@ -1,13 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  toastSwal,
-} from '@/app/utils/swalHelper';
-import {
-  ICategories,
-  IProductGet,
-} from '@/types/productTypes';
+import { toastSwal } from '@/app/utils/swalHelper';
+import { ICategories, IProductGet } from '@/types/productTypes';
 import { productList, categoryList } from '@/lib/product';
 
 import AddProduct from '@/components/Admins/ProductManagement/AddProduct';
@@ -21,6 +17,7 @@ const ProductManagement: React.FC = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
 
+  // fetching products
   const fetchData = async () => {
     try {
       const { products } = await productList(search, category);
@@ -30,6 +27,7 @@ const ProductManagement: React.FC = () => {
     }
   };
 
+  // fetching categories
   const fetchCategories = async () => {
     try {
       const { result } = await categoryList();
@@ -53,6 +51,7 @@ const ProductManagement: React.FC = () => {
     <div className="flex flex-col h-full gap-3 mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Product Management</h1>
 
+      {/* add product button & modal */}
       <AddProduct fetchData={fetchData} />
 
       <div className="mb-4">
@@ -106,6 +105,7 @@ const ProductManagement: React.FC = () => {
                       tabIndex={0}
                       className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 gap-6 shadow"
                     >
+                      {/* edit product button & modal */}
                       <li>
                         <EditProduct
                           key={product.id}
@@ -117,12 +117,14 @@ const ProductManagement: React.FC = () => {
                           fetchData={fetchData}
                         />
                       </li>
+                      {/* stock detail button & modal */}
                       <li>
                         <StockHistory
                           key={`stock-${product.id}`}
                           productId={product.id}
                         />
                       </li>
+                      {/* stock update button & modal */}
                       <li>
                         <StockUpdate
                           key={product.id}

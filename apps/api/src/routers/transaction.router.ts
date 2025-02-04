@@ -25,7 +25,7 @@ export class TransactionRouter {
       this.transationController.getActiveTransaction,
     );
     this.router.get(
-      '/active/items',
+      '/active/items/:id',
       verifyToken,
       this.transationController.getOrderItems,
     );

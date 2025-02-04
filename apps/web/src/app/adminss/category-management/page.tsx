@@ -16,6 +16,7 @@ const CategoryManagement: React.FC = () => {
   const [categories, setCategories] = useState<ICategories[]>([]);
   const deleteCategoryIdRef = useRef<number | null>(null);
 
+  // fetch categories data
   const fetchCategories = async () => {
     try {
       const { result } = await categoryList();
@@ -33,6 +34,7 @@ const CategoryManagement: React.FC = () => {
     fetchCategories();
   }, []);
 
+  // handle add category form submit
   const handleAddSubmit = async (
     data: ICreateCategory,
     action: FormikHelpers<ICreateCategory>,
@@ -63,6 +65,7 @@ const CategoryManagement: React.FC = () => {
     }
   };
 
+  // handle category deletion
   const handleDeleteSubmit = async () => {
     try {
       const confirm = await confirmationWithoutSuccessMessageSwal(
@@ -128,7 +131,8 @@ const CategoryManagement: React.FC = () => {
           </tbody>
         </table>
       </div>
-      {/*  */}
+
+      {/* add category form modal */}
 
       <dialog id="add-category" className="modal">
         <div className="modal-box">

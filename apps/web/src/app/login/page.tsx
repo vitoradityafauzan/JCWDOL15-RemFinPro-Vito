@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useRef } from 'react';
 import { ErrorMessage, Field, Form, Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
 import { simpleSwal, toastSwal } from '../utils/swalHelper';
 import { ILogin } from '@/types/accountTypes';
 import { loginSchema } from '../utils/formSchema';
@@ -13,12 +12,7 @@ import { login } from '@/lib/account';
 export default function Login() {
   const router = useRouter();
 
-  // const usernameRef = useRef<HTMLInputElement>(null);
-  // const passwordRef = useRef<HTMLInputElement>(null);
-
-  // const username = usernameRef.current?.value;
-  // const password = passwordRef.current?.value;
-
+  // Login process
   const handleLogin = async (data: ILogin, action: FormikHelpers<ILogin>) => {
     try {
       console.log('Log Comp, data form, \n');
@@ -44,6 +38,7 @@ export default function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center gap-5 min-h-screen w-screen bg-[#b9e1da]">
+      {/* logo */}
       <div className="w-fit h-fit border-0">
         <Image
           src={`/image/Cashewier Logo.png`}
@@ -54,6 +49,7 @@ export default function Login() {
           className="w-80 h-64"
         />
       </div>
+      {/* login form */}
       <div className="flex flex-col items-center justify-center w-fit h-fit bg-white rounded-2xl shadow-2xl ">
         <Formik
           initialValues={{ username: '', password: '' }}

@@ -13,6 +13,7 @@ import EditCashier from '@/components/Admins/CashierManagement/EditCashier';
 const CashierManagement = () => {
   const [cashiers, setCashiers] = useState<IAccount[]>([]);
 
+  // fetch cashier data
   const fetchData = async () => {
     try {
       const { result } = await fetchCashiers();
@@ -29,6 +30,7 @@ const CashierManagement = () => {
     fetchData();
   }, []);
 
+  // handle cashier deletion
   const handleDelete = async (cashierId: number) => {
     try {
       const confirm = await confirmationWithoutSuccessMessageSwal(
@@ -74,6 +76,8 @@ const CashierManagement = () => {
                 <td>{cashier.username}</td>
                 <td>{cashier.role}</td>
                 <td className="flex gap-5 w-3/6">
+
+                  {/* Edit cashier button & modal */}
                   <EditCashier cashier={cashier} fetchData={fetchData} />
 
                   <button

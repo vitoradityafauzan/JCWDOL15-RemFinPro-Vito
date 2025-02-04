@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -13,22 +14,27 @@ import { toastSwal } from '@/app/utils/swalHelper';
 import { currencyFormat } from '@/app/utils/currencyFormat';
 
 const SalesHistory = () => {
+  // essential settings
   const [salesHistory, setSalesHistory] = useState<any[]>([]);
   const [sortOrder, setSortOrder] = useState('asc');
   const [historyPart, setHistoryPart] = useState('main');
   const [shiftDetail, setShiftDetail] = useState<any>();
 
+  // Fetching all transactions
   const fetchData = async () => {
     try {
-      const { result } = await transactionAll();
+      setSalesHistory([]);
+      const { result } = await transactionAll(sortOrder);
       setSalesHistory(result.transactions);
     } catch (error: any) {
       toastSwal('error', `${error}`);
     }
   };
 
+  // Fetching accumulated sales prices
   const fetchData2 = async () => {
     try {
+      setSalesHistory([]);
       const { result } = await transactionAccumulatedSales(sortOrder);
       setSalesHistory(result.transactions);
     } catch (error: any) {
@@ -36,8 +42,10 @@ const SalesHistory = () => {
     }
   };
 
+  // Fetching total item sold per day
   const fetchData3 = async () => {
     try {
+      setSalesHistory([]);
       const { result } = await transactionTotalItemPerDay();
       setSalesHistory(result.transactions);
     } catch (error: any) {
@@ -45,8 +53,10 @@ const SalesHistory = () => {
     }
   };
 
+  // Fetching abnormal shift data by total transaction
   const fetchData4 = async () => {
     try {
+      setSalesHistory([]);
       const { result } = await transactionAbnormalPayment();
       setSalesHistory(result.transactions);
     } catch (error: any) {
@@ -54,8 +64,10 @@ const SalesHistory = () => {
     }
   };
 
+  // Fetching shifts data
   const fetchData5 = async () => {
     try {
+      setSalesHistory([]);
       const { result } = await transactionShiftAll();
       setSalesHistory(result.shifts);
     } catch (error: any) {
@@ -63,6 +75,7 @@ const SalesHistory = () => {
     }
   };
 
+  // Fetching details for shifts data
   const fetchData5Detail = async (shiftId: number) => {
     try {
       const { result } = await transactionShiftDetail(shiftId);
@@ -73,22 +86,32 @@ const SalesHistory = () => {
     }
   };
 
+  // Automatically fetch all transactions
   useEffect(() => {
     fetchData();
-  }, [sortOrder]);
+  }, []);
 
-  const handleSortChange = () => {
+  // Handle sorting by dates
+  const handleSortChange = (which: number) => {
     setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
+
+    if (which === 1) {
+      fetchData();
+    } else {
+      fetchData2();
+    }
   };
 
+  // Handle content change
   const handleHistoryPart = () => {
     switch (historyPart) {
+      // all transactions
       case 'main':
         return (
           <div className="flex flex-col w-full">
             <button
               className="btn btn-primary mb-4 w-40"
-              onClick={handleSortChange}
+              onClick={() => handleSortChange(1)}
             >
               Sort by Date ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
             </button>
@@ -139,12 +162,13 @@ const SalesHistory = () => {
           </div>
         );
 
+      // accumulated sales prices
       case 'accumulated-sales':
         return (
           <div className="flex flex-col w-full">
             <button
               className="btn btn-primary mb-4 w-40"
-              onClick={handleSortChange}
+              onClick={() => handleSortChange(2)}
             >
               Sort by Date ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
             </button>
@@ -175,25 +199,28 @@ const SalesHistory = () => {
           </div>
         );
 
+      // total item sold per day
       case 'total-items':
         return (
           <div className="flex flex-col w-full">
             <table className="table-zebra w-full">
               <thead>
                 <tr>
+                  <th>Date</th>
                   <th>Product ID</th>
                   <th>Total Items</th>
-                  <th>Date</th>
                 </tr>
               </thead>
               <tbody className="gap-4 text-center">
                 {salesHistory.map((order) => (
                   <tr key={order.productId} className="hover h-16">
+                    <td className="pl-4">
+                      {new Date(order.date).toLocaleDateString('id-ID', {
+                        timeZone: 'Asia/Bangkok',
+                      })}
+                    </td>
                     <td className="pl-4">{order.productId}</td>
                     <td className="pl-4">{order.totalItem}</td>
-                    <td className="pl-4">
-                      {new Date(order.date).toLocaleDateString()}
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -201,6 +228,7 @@ const SalesHistory = () => {
           </div>
         );
 
+      // abnormal shift data by total transaction
       case 'abnormal-payment':
         return (
           <div className="flex flex-col w-full">
@@ -237,6 +265,7 @@ const SalesHistory = () => {
           </div>
         );
 
+      // shifts data
       case 'shift-all':
         return (
           <div className="flex flex-col w-full">
@@ -259,16 +288,16 @@ const SalesHistory = () => {
                     <td className="pl-4">{order.User?.username}</td>
                     <td className="pl-4">
                       {new Date(order.CheckInTime).toLocaleString('id-ID', {
-                          timeZone: 'Asia/Bangkok',
-                        })}
+                        timeZone: 'Asia/Bangkok',
+                      })}
                     </td>
                     <td className="pl-4">
                       {currencyFormat(order.currentCashTotal)}
                     </td>
                     <td className="pl-4">
                       {new Date(order.CheckoutTime).toLocaleString('id-ID', {
-                          timeZone: 'Asia/Bangkok',
-                        })}
+                        timeZone: 'Asia/Bangkok',
+                      })}
                     </td>
                     <td className="pl-4">
                       {currencyFormat(order.newCashTotal)}
@@ -309,6 +338,7 @@ const SalesHistory = () => {
     <div className="flex flex-col gap-8 p-4">
       <h1 className="text-2xl font-bold">Sales History</h1>
       <div className="flex gap-7">
+        {/* button for all transactions */}
         <button
           className="btn btn-outline"
           onClick={async () => {
@@ -319,6 +349,7 @@ const SalesHistory = () => {
         >
           Main
         </button>
+        {/* button for accumulated sales prices */}
         <button
           className="btn btn-outline"
           onClick={async () => {
@@ -329,6 +360,7 @@ const SalesHistory = () => {
         >
           Accumulated Sales
         </button>
+        {/* button for total item sold per day */}
         <button
           className="btn btn-outline"
           onClick={async () => {
@@ -339,6 +371,7 @@ const SalesHistory = () => {
         >
           Total Item Sold Per Day
         </button>
+        {/* button for abnormal shift data by total transaction */}
         <button
           className="btn btn-outline"
           onClick={async () => {
@@ -349,6 +382,7 @@ const SalesHistory = () => {
         >
           Abnormal Payment
         </button>
+        {/* button for shifts data */}
         <button
           className="btn btn-outline"
           onClick={async () => {
@@ -362,7 +396,7 @@ const SalesHistory = () => {
       </div>
       {handleHistoryPart()}
 
-      {/*  */}
+      {/* modal for shifts data detail */}
 
       <dialog id="shift-detail" className="modal">
         {shiftDetail && (
@@ -419,80 +453,3 @@ const SalesHistory = () => {
 };
 
 export default SalesHistory;
-
-/*
-<table className="table-zebra w-full">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Cashier</th>
-              <th>Total Items</th>
-              <th>Total Price</th>
-              <th>Date</th>
-              <th>Order Items</th>
-            </tr>
-          </thead>
-          <tbody className="gap-4 text-center">
-            {salesHistory.map((order) => (
-              <tr key={order.id} className='hover h-16'>
-                <td className='pl-4'>{order.id}</td>
-                <td className='pl-4'>{order.User.username}</td>
-                <td className='pl-4'>{order.totalItems}</td>
-                <td className='pl-4'>{order.totalPrice}</td>
-                <td className='pl-4'>{new Date(order.createdAt).toLocaleDateString()}</td>
-                <td className='pl-4'>
-                  <ul>
-                    {order.orderItems.map((item: IOrderItems) => (
-                      <li key={item.id}>
-                        {item.Product?.productName} - {item.quantity} x{' '}
-                        {item.price}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-*/
-
-/*
-
-<table className="table-zebra w-full">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Cashier</th>
-                  <th>Total Items</th>
-                  <th>Total Price</th>
-                  <th>Date</th>
-                  <th>Order Items</th>
-                </tr>
-              </thead>
-              <tbody className="gap-4 text-center">
-                {salesHistory.map((order) => (
-                  <tr key={order.id} className="hover h-16">
-                    <td className="pl-4">{order.id}</td>
-                    <td className="pl-4">{order.User?.username}</td>
-                    <td className="pl-4">{order.totalItems}</td>
-                    <td className="pl-4">{order.totalPrice}</td>
-                    <td className="pl-4">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="pl-4">
-                      <ul>
-                        {order.orderItems.map((item: IOrderItems) => (
-                          <li key={item.id}>
-                            {item.Product?.productName} - {item.quantity} x{' '}
-                            {item.price}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-*/

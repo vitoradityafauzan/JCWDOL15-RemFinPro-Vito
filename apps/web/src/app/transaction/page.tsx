@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -9,7 +10,6 @@ import {
   getActiveTransaction,
 } from '@/lib/transaction';
 import {
-  confirmationSwal,
   confirmationWithoutSuccessMessageSwal,
   simpleSwal,
   toastSwal,
@@ -19,11 +19,12 @@ import { IOrderItems } from '@/types/transactionTypes';
 export default function Transaction() {
   const router = useRouter();
 
-  const [order, setOrder] = useState<any>();
-  const [orderItems, setOrderItems] = useState<IOrderItems[]>([]);
-
   const amountRef = useRef<HTMLInputElement | null>(null);
   const debitCardRef = useRef<HTMLInputElement | null>(null);
+
+  // Fetch pending transaction order and its items
+  const [order, setOrder] = useState<any>();
+  const [orderItems, setOrderItems] = useState<IOrderItems[]>([]);
 
   const getActiveOrder = async () => {
     try {
@@ -45,8 +46,7 @@ export default function Transaction() {
     getActiveOrder();
   }, []);
 
-  //orderId,payType,amount,debitCard
-
+  // Handle payment by cash
   const handleTransactionFinalizeCash = async () => {
     try {
       const currentTime = new Date();
@@ -71,14 +71,6 @@ export default function Transaction() {
       }
 
       if (res) {
-        /*
-        orderId: number,
-        payType: string,
-        amount: number,
-        cashChange: number,
-        debitCard: string,
-        updatedAt: string,
-        */
         const { result } = await finalizedTransaction(
           order.id,
           'CASH',
@@ -99,6 +91,7 @@ export default function Transaction() {
     }
   };
 
+  // Handle payment by debit
   const handleTransactionFinalizeDebit = async () => {
     try {
       const currentTime = new Date();
@@ -112,14 +105,6 @@ export default function Transaction() {
       );
 
       if (res) {
-        /*
-        orderId: number,
-        payType: string,
-        amount: number,
-        cashChange: number,
-        debitCard: string,
-        updatedAt: string,
-        */
         const { result } = await finalizedTransaction(
           order.id,
           'DEBIT',
@@ -140,6 +125,7 @@ export default function Transaction() {
     }
   };
 
+  // Handle transaction cancelation
   const handleCancelTransaction = async () => {
     try {
       const confirm = await confirmationWithoutSuccessMessageSwal(
@@ -173,6 +159,7 @@ export default function Transaction() {
         cancel transaction
       </button>
       <div className="flex flex-col gap-14 w-5/6 border-t-8 border-accent rounded-xl py-12 items-center">
+        {/* Transaction items */}
         {orderItems &&
           orderItems?.map((oi) => (
             <div
@@ -180,7 +167,7 @@ export default function Transaction() {
               key={oi.id}
             >
               <div className="flex flex-col gap-4 text-lg">
-                <h1 className="font-bold">{oi.Product.productName}</h1>
+                <h1 className="font-bold">{oi.Product?.productName}</h1>
                 <h2>x{oi.quantity}</h2>
                 <h2>{currencyFormat(oi.totalPrice)}</h2>
               </div>
@@ -195,6 +182,7 @@ export default function Transaction() {
           </h2>
         )}
         <div className="flex gap-14 w-3/6 ">
+          {/* Cash pay button */}
           <button
             className="btn btn-accent basis-3/6"
             onClick={() => {
@@ -205,35 +193,7 @@ export default function Transaction() {
           >
             Cash
           </button>
-          <dialog id="cash-pay" className="modal">
-            <div className="modal-box">
-              <form method="dialog">
-                {/* if there is a button in form, it will close the modal */}
-                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                  ✕
-                </button>
-              </form>
-              <div className="flex flex-col gap-5 items-center">
-                <h3 className="font-bold text-lg">Pay By Cash</h3>
-                <p className="py-4">Enter Customers payment</p>
-                <input
-                  type="number"
-                  placeholder="amount"
-                  className="input input-bordered input-accent input-sm max-w-xs text-sm"
-                  id="amount"
-                  ref={amountRef}
-                />
-                <form method="dialog">
-                  <button
-                    className="btn btn-outline btn-accent"
-                    onClick={handleTransactionFinalizeCash}
-                  >
-                    checking
-                  </button>
-                </form>
-              </div>
-            </div>
-          </dialog>
+          {/* Debit pay method */}
           <button
             className="btn btn-accent basis-3/6"
             onClick={() => {
@@ -244,39 +204,70 @@ export default function Transaction() {
           >
             Debit
           </button>
-          <dialog id="debit-pay" className="modal">
-            <div className="modal-box">
-              <form method="dialog">
-                {/* if there is a button in form, it will close the modal */}
-                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                  ✕
-                </button>
-              </form>
-              <div className="flex flex-col gap-5 items-center">
-                <h3 className="font-bold text-lg">Pay By Debit</h3>
-                <div>
-                  <p className="py-4">Enter Customers debit credential</p>
-                  <input
-                    type="text"
-                    placeholder="debit credential"
-                    className="input input-bordered input-accent input-sm max-w-xs text-sm"
-                    id="debitCard"
-                    ref={debitCardRef}
-                  />
-                </div>
-                <form method="dialog">
-                  <button
-                    className="btn btn-outline btn-accent"
-                    onClick={handleTransactionFinalizeDebit}
-                  >
-                    checking
-                  </button>
-                </form>
-              </div>
-            </div>
-          </dialog>
         </div>
       </div>
+      {/* Cash pay modal */}
+      <dialog id="cash-pay" className="modal">
+        <div className="modal-box">
+          <form method="dialog">
+            {/* if there is a button in form, it will close the modal */}
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <div className="flex flex-col gap-5 items-center">
+            <h3 className="font-bold text-lg">Pay By Cash</h3>
+            <p className="py-4">Enter Customers payment</p>
+            <input
+              type="number"
+              placeholder="amount"
+              className="input input-bordered input-accent input-sm max-w-xs text-sm"
+              id="amount"
+              ref={amountRef}
+            />
+            <form method="dialog">
+              <button
+                className="btn btn-outline btn-accent"
+                onClick={handleTransactionFinalizeCash}
+              >
+                checking
+              </button>
+            </form>
+          </div>
+        </div>
+      </dialog>
+      {/* Debit pay modal */}
+      <dialog id="debit-pay" className="modal">
+        <div className="modal-box">
+          <form method="dialog">
+            {/* if there is a button in form, it will close the modal */}
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <div className="flex flex-col gap-5 items-center">
+            <h3 className="font-bold text-lg">Pay By Debit</h3>
+            <div>
+              <p className="py-4">Enter Customers debit credential</p>
+              <input
+                type="text"
+                placeholder="debit credential"
+                className="input input-bordered input-accent input-sm max-w-xs text-sm"
+                id="debitCard"
+                ref={debitCardRef}
+              />
+            </div>
+            <form method="dialog">
+              <button
+                className="btn btn-outline btn-accent"
+                onClick={handleTransactionFinalizeDebit}
+              >
+                checking
+              </button>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

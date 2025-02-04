@@ -1,8 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { ICategories, IProductGet } from '@/types/productTypes';
 import { Cart } from '@/components/Dashboard/Cart';
-import { getCookie } from 'cookies-next';
 import debounce from 'lodash.debounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -13,19 +13,17 @@ import { ProductCard } from '@/components/Dashboard/ProductCard';
 export default function Home() {
   const router = useRouter();
 
-  //
-
-  // Search state and query handling
+  // Product name and category search state and query handling
   const searchParams = useSearchParams();
   const querySearch = searchParams.get('search');
   const queryCategory = searchParams.get('category');
 
   const searchRef = useRef<HTMLInputElement | null>(null);
-  const [data, setData] = useState<IProductGet[] | null>(null);
+
   const [search, setSearch] = useState<string>(querySearch || '');
   const [category, setCategory] = useState<string>(queryCategory || '');
 
-  // Track if user has interacted with the inputs
+  // Track if user has interacted with the search inputs
   const [isSearchTouched, setIsSearchTouched] = useState(false);
   const [isCategoryTouched, setIsCategoryTouched] = useState(false);
 
@@ -55,18 +53,10 @@ export default function Home() {
     debouncedCategory(e.target.value);
   };
 
-  //
-
+  // Fetch category select contents
   const [categories, setCategories] = useState<ICategories[] | null>(null);
+
   const getCategories = async () => {
-    // try {
-    //   const { categories } = await categoryList();
-
-    //   setCategories(categories);
-    // } catch (err: any) {
-    //   toastSwal('error', `${err}`);
-    // }
-
     try {
       const { result } = await categoryList();
 
@@ -79,48 +69,33 @@ export default function Home() {
       toastSwal('error', `${error}`);
     }
   };
+
   useEffect(() => {
     getCategories();
   }, []);
 
-  //
+  // Fetch product data
+  const [data, setData] = useState<IProductGet[] | null>(null);
+
+  const fetchData = async () => {
+    try {
+      let query = ``;
+
+      if (isSearchTouched || isCategoryTouched) {
+        query += `?search=${search}&category=${category}`;
+      }
+
+      router.push(query);
+
+      // Fetch events based on the search parameters
+      const { products } = await productList(search, category);
+      setData(products || []);
+    } catch (err: any) {
+      toastSwal('error', `${err}`);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // const token = getCookie('cashewier-token');
-        // if (!token) throw 'Please Login Before Accessing Profile!';
-
-        let query = ``;
-
-        // if (isSearchTouched) {
-        //   query += `?search=${search}`;
-        // }
-
-        // if (isCategoryTouched) {
-        //   query += `&category=${category}`;
-        // }
-
-        if (isSearchTouched || isCategoryTouched) {
-          query += `?search=${search}&category=${category}`;
-        }
-
-        router.push(query);
-
-        // Fetch events based on the search parameters
-        const { products } = await productList(search, category);
-        setData(products || []);
-      } catch (err: any) {
-        // if (err === 'Please Login Before Accessing Profile!') {
-        //   toastSeeFailed(`${err}`);
-        //   router.push('/login');
-        // } else {
-        //   toastSeeFailed(`${err}`);
-        // }
-        toastSwal('error', `${err}`);
-      }
-    };
-
     fetchData();
   }, [search, category, router]);
 
