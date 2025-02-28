@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "types": ["./src/custom.d.ts"],
-    "module": "commonjs",
+    "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
