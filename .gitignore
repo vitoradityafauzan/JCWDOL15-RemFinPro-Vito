@@ -38,3 +38,5 @@ yarn-error.log*
 # others
 dist
 apps/api/.env.development
+
+apps/api/prisma/generated/*
